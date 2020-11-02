@@ -1,0 +1,25 @@
+{
+  "session": {
+    "region_name": "us-east-1"
+  },
+  "clients": {
+    "sts": {
+      "get_caller_identity": {
+        "UserId": "SOMEUSERIDSTRING",
+        "Account": "123",
+        "Arn": "arn:aws:iam::us-east-1:123:user/foo.bar"
+      }
+    },
+    "lambda": {
+      "get_function_configuration": [
+        {},
+        {
+          "Error": {
+            "Code": "ResourceNotFoundException",
+            "Message": "Nope, that's not a function."
+          }
+        }
+      ]
+    }
+  }
+}
