@@ -79,8 +79,8 @@ class Lobotomy:
     objects during lobotomy tests.
     """
 
-    def __init__(self, data: typing.Dict[str, typing.Any]):
-        self._data = data
+    def __init__(self, data: typing.Dict[str, typing.Any] = None):
+        self.data = data or {}
 
     def __call__(
         self,
@@ -102,13 +102,13 @@ class Lobotomy:
         )
 
     def get_session_data(self) -> dict:
-        data = self._data.get("session", self._data.get("sessions")) or {}
+        data = self.data.get("session", self.data.get("sessions")) or {}
         if not isinstance(data, dict):
             return data.pop(0)
         return data
 
     def get_response(self, service_name: str, method_name: str) -> dict:
-        response = self._data.get("clients", {}).get(service_name, {}).get(method_name)
+        response = self.data.get("clients", {}).get(service_name, {}).get(method_name)
         if response is None:
             raise ValueError(f"No response available for {service_name}.{method_name}")
         if isinstance(response, list):
