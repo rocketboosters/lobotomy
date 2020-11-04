@@ -243,3 +243,4 @@ fabric.properties
 *.parquet
 
 poetry.lock
+sandbox.py

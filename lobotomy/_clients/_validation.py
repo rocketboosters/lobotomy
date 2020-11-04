@@ -25,7 +25,7 @@ def validate_input(
         Keyword arguments made to the method call.
     """
     definition = method.input
-    keys = [k for k in definition["members"].keys() if k[0].lower() != k[0]]
+    keys = list(definition["members"].keys())
     request = {
         **{keys[i]: a for i, a in enumerate(request_args)},
         **(request_kwargs or {}),
