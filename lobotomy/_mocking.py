@@ -55,7 +55,7 @@ class Patch:
         elif self.path:
             lobotomy = lbm.Lobotomy.from_file(self.path, prefix=self.prefix)
         else:
-            raise ValueError("lobotomy.Patch must specify data or path.")
+            lobotomy = lbm.Lobotomy()
 
         @patch(self.patch_path, new=lobotomy)
         def lobotomy_decorated(*args, **kwargs):

@@ -6,12 +6,6 @@ import pytest
 import lobotomy as lbm
 
 
-def test_bad_patch():
-    """Should raise a patch error when neither data nor path are specified."""
-    with pytest.raises(ValueError):
-        lbm.Patch()(lambda *args, **kwargs: 1)
-
-
 def test_missing_file_patch():
     """Should raise a patch error when neither data nor path are specified."""
     fake_path = pathlib.Path(__file__).parent.joinpath("fake.yaml")
