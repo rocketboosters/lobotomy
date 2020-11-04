@@ -454,7 +454,7 @@ To use these in a test the *prefix* must be specified in the Patch:
 import pathlib
 import lobotomy
 
-config_path = pathlib.Path(__file__).parent.joinpath('tests.yaml')
+config_path = pathlib.Path(__file__).parent.joinpath('validation.yaml')
 
 
 @lobotomy.Patch(config_path, prefix='lobotomy.test_a')
