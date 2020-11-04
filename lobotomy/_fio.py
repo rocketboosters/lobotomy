@@ -86,7 +86,7 @@ def write(
     data = _read_file(path, file_format)
 
     child = data
-    for key in (keys or []):
+    for key in keys or []:
         if key not in child:
             child[key] = {}
         child = child[key]

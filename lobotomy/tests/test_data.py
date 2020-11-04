@@ -26,7 +26,7 @@ def test_data():
     assert client.get_caller_identity()['UserId'] == 'SOMEUSERIDSTRING'
 
 
-@lbm.Patch(copy.deepcopy(data))
+@lbm.Patch(data=copy.deepcopy(data))
 def test_data_patched(*args):
     """Should execute as expected given the data object."""
     session = boto3.Session()
@@ -34,7 +34,7 @@ def test_data_patched(*args):
     assert client.get_caller_identity()['UserId'] == 'SOMEUSERIDSTRING'
 
 
-@lbm.Patch(copy.deepcopy(data))
+@lbm.Patch(data=copy.deepcopy(data))
 def test_data_streaming_body(*args):
     """Should execute as expected given the data object."""
     session = boto3.Session()
@@ -44,7 +44,7 @@ def test_data_streaming_body(*args):
     assert response['Body'].read() == b'hello world.'
 
 
-@lbm.Patch(copy.deepcopy(data))
+@lbm.Patch(data=copy.deepcopy(data))
 def test_data_timestamp_casting(*args):
     """Should cast the last modified value to a timestamp."""
     session = boto3.Session()

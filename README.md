@@ -1,5 +1,18 @@
 # Lobotomy
 
+[![PyPI version](https://badge.fury.io/py/lobotomy.svg)](https://badge.fury.io/py/lobotomy)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
+- [Installation](#installation)
+- [Tl;dr Usage](#tldr-usage)
+- [Usage](#usage)
+    - [Configuration Files](#configuration-files)
+    - [Test Patching](#test-patching)
+    - [Command Line Interface](#command-line-interface)
+- [Advanced Usage](#advanced-usage)
+    - [Key Prefixes](#key-prefixes)
+    - [Patching Targets](#patching-targets)
+    
 The *lo&#8226;**boto**&#8226;my* library allows one to mock the low-level boto3
 client libraries efficiently, especially in more complex scenario testing 
 situations, using configuration-based response definitions. The benefit is a
@@ -20,7 +33,70 @@ or via poetry as a development dependency in a project:
 $ poetry add lobotomy -D
 ```
 
-## Basic Usage
+## Tl;dr Usage
+
+Create a configuration file in YAML, TOML, or JSON format with a root *clients*
+key. Beneath that key add the desired client calls mocked responses by service
+as shown here for a `session.client('s3').get_object()` mocked response:
+
+```yaml
+clients:
+  s3:
+    get_object:
+      Body: 'The contents of my S3 file.'
+      LastModified: '2020-12-01T01:02:03Z'
+```
+
+Then in the test notice that the lobotomy patching process handles the
+rest, including casting the configuration values specified in the call
+above into the more complex data types returned for the specific call.
+
+```python
+import lobotomy
+import pathlib
+import boto3
+import datetime
+
+my_directory = pathlib.Path(__file__).parent
+
+@lobotomy.Patch(my_directory.joinpath('test_lobotomy.yaml'))
+def test_lobotomy(lobotomized: lobotomy.Lobotomy):
+    """
+    Should return the mocked get_object response generated from the
+    configuration data specified in the lobotomy patch above. By default
+    the Patch(...) applies to the boto3.Session object, so calling 
+    boto3.Session() will create a lobotomy.Session instead of a normal
+    boto3.Session. From there the low-level client interface is designed
+    to match normal usage.
+    """
+    s3_client = boto3.Session().client('s3')
+    
+    # Lobotomy will validate that you have specified the required keys
+    # in your request, so Bucket and Key have to be supplied here even though
+    # they are not meaningful values in this particular test scenario.
+    response = s3_client.get_object(Bucket='foo', Key='bar')
+
+    expected = b'The contents of my S3 file.'
+    assert response['Body'].read() == expected, """
+        Expect the mocked response body data to be returned as a
+        StreamingBody object with blob/bytes contents. The lobotomy
+        library introspects boto to properly convert the string body
+        value in the configuration file into the expected return format
+        for the particular call.
+        """
+    
+    expected = datetime.datetime(2020, 12, 1, 1, 2, 3, 0, datetime.timezone.utc)
+    assert response['LastModified'] == expected, """
+        Expect the mocked response last modified value to be a timezeon-aware
+        datetime value generated from the string timestamp value in the
+        configuration file to match how it would be returned by boto in
+        an actual response.
+        """
+```
+
+# Usage
+
+## Configuration Files
 
 Test scenarios can be written in YAML, TOML, or JSON formats. YAML or TOML are
 recommended unless copying output responses from JSON calls is easier for a
@@ -33,6 +109,382 @@ clients:
       Account: '987654321'
   s3:
     get_object:
-     Body: 'The contents of my S3 file.'
-     LastModified: '2020-11-01T12:23:34Z'
+      Body: 'The contents of my S3 file.'
+      LastModified: '2020-11-01T12:23:34Z'
+```
+
+All call responses are stored within the root *clients* attribute with service
+names as sub-attributes and then the service method call responses defined 
+beneath the service name attributes. Multiple services and multiple methods
+per service are specified in this way by the hierarchical key lists.
+
+If the contents of a method response definition are not a list, the same
+response will be returned for each call to that client method during the
+test. Specifying a list of responses will alter the behavior such that each
+successive call will iterate through that list of configured responses.
+
+```yaml
+clients:
+  s3:
+    get_object:
+    - Body: 'The contents of my S3 file.'
+      LastModified: '2020-11-01T12:23:34Z'
+    - Body: 'Another S3 file.'
+      LastModified: '2020-11-03T12:23:34Z'
+```
+
+The lobotomy library dynamically inspects boto for its response structure
+and data types, such that they match the types for the normal boto response
+for each client method call. In the case of the
+`session.client('s3').get_object()` calls above, the `Body` would return
+a `StreamingBody` object with the string converted to bytes to match the
+normal output. Similarly, the `LastModified` would be converted to a
+timezone-aware datetime object by lobotomy as well. This makes it easy
+to specify primitive data types in the configuration file that are transformed
+into their more complex counterparts when returned within the execution of
+the actual code.
+
+## Test Patching
+
+Once the configuration file has been specified, it is used within a test
+via a `lobotomy.Patch` as shown below.
+
+```python
+import lobotomy
+import pathlib
+import boto3
+import datetime
+
+my_directory = pathlib.Path(__file__).parent
+
+@lobotomy.Patch(my_directory.joinpath('test_lobotomy.yaml'))
+def test_lobotomy(lobotomized: lobotomy.Lobotomy):
+    """
+    Should return the mocked get_object response generated from the
+    configuration data specified in the lobotomy patch above. By default
+    the Patch(...) applies to the boto3.Session object, so calling 
+    boto3.Session() will create a lobotomy.Session instead of a normal
+    boto3.Session. From there the low-level client interface is designed
+    to match normal usage.
+    """
+    s3_client = boto3.Session().client('s3')
+    
+    # Lobotomy will validate that you have specified the required keys
+    # in your request, so Bucket and Key have to be supplied here even though
+    # they are not meaningful values in this particular test scenario.
+    response = s3_client.get_object(Bucket='foo', Key='bar')
+
+    expected = b'The contents of my S3 file.'
+    assert response['Body'].read() == expected, """
+        Expect the mocked response body data to be returned as a
+        StreamingBody object with blob/bytes contents. The lobotomy
+        library introspects boto to properly convert the string body
+        value in the configuration file into the expected return format
+        for the particular call.
+        """
+    
+    expected = datetime.datetime(2020, 12, 1, 1, 2, 3, 0, datetime.timezone.utc)
+    assert response['LastModified'] == expected, """
+        Expect the mocked response last modified value to be a timezeon-aware
+        datetime value generated from the string timestamp value in the
+        configuration file to match how it would be returned by boto in
+        an actual response.
+        """
+```
+
+The patching process replaces the `boto3.Session` class with a
+`lobotomy.Lobotomy` object that contains the loaded configuration data.
+When patched in this fashion, `boto3.Session()` calls will actually be
+`lobotomy.Lobotomy()` calls that return `lobotomy.Session` objects. These
+sessions have the interface of the `boto3.Session` object, but behave in
+a way such that client responses are returned from the configuration data
+instead of through interactivity with AWS.
+
+For simple cases with little configuration, it is also possible to patch
+data stored directly within the Python code. The above test could be rewritten
+in this way as:
+
+```python
+import lobotomy
+
+configuration = {
+    'clients': {
+        's3': {
+            'get_object': [
+                { 
+                    'Body': 'The contents of my S3 file.',
+                    'LastModified': '2020-11-01T12:23:34Z',
+                },
+                {
+                    'Body': 'Another S3 file.',
+                    'LastModified': '2020-11-03T12:23:34Z',
+                },
+            ],
+        },
+    },
+}
+
+
+@lobotomy.Patch(data=configuration)
+def test_lobotomy(lobotomized: lobotomy.Lobotomy):
+    """..."""
+```
+
+Although one of the benefits of lobotomy is the ability to streamline the
+tests files by reducing the response configuration, which can be a bit
+verbose inside Python files and that is the highly recommended approach.
+
+## Command Line Interface
+
+The lobotomy library also has a command line interface to help streamline
+the process of creating configuration files. The CLI has an `add` command
+that can be used to auto-generate method call response configurations to
+a new or existing configuration file. The values are meant to be replaced
+and unused keys to be removed to streamline for testing, but it helps a lot
+to get the full structure of the response in place and work from there instead
+of having to look it up yourself.
+
+For example, creating the file:
+
+```yaml
+clients:
+  sts:
+    get_caller_identity:
+      Account: '987654321'
+  s3:
+    get_object:
+    - Body: 'The contents of my S3 file.'
+      LastModified: '2020-11-01T12:23:34Z'
+    - Body: 'Another S3 file.'
+      LastModified: '2020-11-03T12:23:34Z'
+```
+
+could be done first through the CLI commands:
+
+```shell script
+$ lobotomy add sts.get_caller_identity example.yaml
+``` 
+
+After that command is executed, the `example.yaml` file will be
+created and populated initially with:
+
+```yaml
+clients:
+  sts:
+    get_caller_identity:
+      Account: '...'
+      Arn: '...'
+      UserId: '...'
+```
+
+Notice the values are placeholders. We can adjust the values to what we want
+and remove the unnecessary keys for our particular case such that the file
+contents are then:
+
+```yaml
+clients:
+  sts:
+    get_caller_identity:
+      Account: '987654321'
+```
+
+Next add the first `s3.get_object` call:
+
+```shell script
+$ lobotomy add s3.get_object example.yaml
+```
+
+The configuration file now looks like:
+
+```yaml
+clients:
+  s3:
+    get_object:
+      AcceptRanges: '...'
+      Body: '...'
+      CacheControl: '...'
+      ContentDisposition: '...'
+      ContentEncoding: '...'
+      ContentLanguage: '...'
+      ContentLength: 1
+      ContentRange: '...'
+      ContentType: '...'
+      DeleteMarker: null
+      ETag: '...'
+      Expiration: '...'
+      Expires: '2020-11-04T14:37:18.042821Z'
+      LastModified: '2020-11-04T14:37:18.042821Z'
+      Metadata: null
+      MissingMeta: 1
+      ObjectLockLegalHoldStatus: '...'
+      ObjectLockMode: '...'
+      ObjectLockRetainUntilDate: '2020-11-04T14:37:18.042821Z'
+      PartsCount: 1
+      ReplicationStatus: '...'
+      RequestCharged: '...'
+      Restore: '...'
+      SSECustomerAlgorithm: '...'
+      SSECustomerKeyMD5: '...'
+      SSEKMSKeyId: '...'
+      ServerSideEncryption: '...'
+      StorageClass: '...'
+      TagCount: 1
+      VersionId: '...'
+      WebsiteRedirectLocation: '...'
+  sts:
+    get_caller_identity:
+      Account: '987654321'
+```
+
+Of course, this is a simple case because we don't need much of the response
+structure in our simplified use-case, but hopefully you can see the value
+of being able to add the response structure so easily for more complex cases.
+Once again, the new call is adjusted to fit our particular needs:
+
+```yaml
+clients:
+  s3:
+    get_object:
+      Body: 'The contents of my S3 file.'
+      LastModified: '2020-11-01T12:23:34Z'
+  sts:
+    get_caller_identity:
+      Account: '987654321'
+```
+
+Adding the second `s3.get_object` call is identical:
+
+```shell script
+$ lobotomy add s3.get_object example.yaml
+```
+
+However, lobotomy notices the existing call there and so converts the
+`get_object` response configuration to a list of responses for you:
+
+```yaml
+clients:
+  s3:
+    Body: 'The contents of my S3 file.'
+    LastModified: '2020-11-01T12:23:34Z'
+    get_object:
+      AcceptRanges: '...'
+      Body: '...'
+      CacheControl: '...'
+      ContentDisposition: '...'
+      ContentEncoding: '...'
+      ContentLanguage: '...'
+      ContentLength: 1
+      ContentRange: '...'
+      ContentType: '...'
+      DeleteMarker: null
+      ETag: '...'
+      Expiration: '...'
+      Expires: '2020-11-04T14:42:51.077364Z'
+      LastModified: '2020-11-04T14:42:51.077364Z'
+      Metadata: null
+      MissingMeta: 1
+      ObjectLockLegalHoldStatus: '...'
+      ObjectLockMode: '...'
+      ObjectLockRetainUntilDate: '2020-11-04T14:42:51.077364Z'
+      PartsCount: 1
+      ReplicationStatus: '...'
+      RequestCharged: '...'
+      Restore: '...'
+      SSECustomerAlgorithm: '...'
+      SSECustomerKeyMD5: '...'
+      SSEKMSKeyId: '...'
+      ServerSideEncryption: '...'
+      StorageClass: '...'
+      TagCount: 1
+      VersionId: '...'
+      WebsiteRedirectLocation: '...'
+  sts:
+    get_caller_identity:
+      Account: '987654321'
+```
+
+Finally, edit the new call response configuration and we end up with the
+configuration we were looking for:
+
+```yaml
+clients:
+  sts:
+    get_caller_identity:
+      Account: '987654321'
+  s3:
+    get_object:
+    - Body: 'The contents of my S3 file.'
+      LastModified: '2020-11-01T12:23:34Z'
+    - Body: 'Another S3 file.'
+      LastModified: '2020-11-03T12:23:34Z'
+```
+
+# Advanced Usage
+
+## Key Prefixes
+
+By default configuration files are rooted at the `clients` key within the
+file. However, it is possible to specify a different root key prefix, which
+is useful when co-locating lobotomy test configuration with other test
+configuration data in the same file, or when co-locating multiple lobotomy
+test configurations within the same file. To achieve that a prefix must be
+specified during patching.
+
+As an example, consider the configuration file:
+
+```yaml
+lobotomy:
+  test_a:
+    clients:
+      sts:
+        get_caller_identity:
+          Account: '987654321'
+  test_b:
+    clients:
+      sts:
+        get_caller_identity:
+          Account: '123456678'
+          UserId: 'AIFASDJWISJAVHXME'
+```
+
+In this case the prefixes are `lobotomy.test_a` and `lobotomy.test_b`.
+To use these in a test the *prefix* must be specified in the Patch:
+
+```python
+import pathlib
+import lobotomy
+
+config_path = pathlib.Path(__file__).parent.joinpath('tests.yaml')
+
+
+@lobotomy.Patch(config_path, prefix='lobotomy.test_a')
+def test_a(lobotomized: lobotomy.Lobotomy):
+    """..."""
+
+
+@lobotomy.Patch(config_path, prefix='lobotomy.test_b')
+def test_b(lobotomized: lobotomy.Lobotomy):
+    """..."""
+```
+
+The prefix can be specified as a `.` delimited string, or as a list/tuple.
+The list/tuple is needed if the keys themselves contains `.`.
+
+## Patching Targets
+
+By default, lobotomy will patch `boto3.Session`. There are scenarios where
+a different patch would be desired either to limit the scope of the patch or
+to patch another library wrapping the `boto3.Session` call. In those cases,
+specify the patch path argument:
+
+```python
+import pathlib
+import lobotomy
+
+config_path = pathlib.Path(__file__).parent.joinpath('test.yaml')
+
+
+@lobotomy.Patch(config_path, patch_path='something.else.Session')
+def test_another_patch_path(lobotomized: lobotomy.Lobotomy):
+    """..."""
 ```

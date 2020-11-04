@@ -67,6 +67,7 @@ class Method(DataWrapper):
         """
         return _formating.flat_cast(self.output)
 
+
 @dataclasses.dataclass(frozen=True)
 class Service(DataWrapper):
     """

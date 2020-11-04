@@ -87,7 +87,7 @@ class Lobotomy:
         region_name: str = None,
         botocore_session: BotocoreSession = None,
         profile_name: str = None,
-    ):
+    ) -> 'Session':
         return Session(
             aws_access_key_id=aws_access_key_id,
             aws_secret_access_key=aws_secret_access_key,
@@ -140,7 +140,7 @@ def _get_within(
     if not prefix:
         return data
 
-    parts = [prefix] if isinstance(prefix, str) else prefix
+    parts = prefix.split('.') if isinstance(prefix, str) else prefix
     for key in parts:
         data = data.get(key, {})
     return data

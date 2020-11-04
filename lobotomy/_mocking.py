@@ -15,22 +15,22 @@ class Patch:
 
     def __init__(
         self,
-        data: dict = None,
         path: typing.Union[None, str, pathlib.Path] = None,
+        data: dict = None,
         prefix: typing.Union[None, str, typing.Iterable[str]] = None,
         patch_path: str = 'boto3.Session',
     ):
         """
         Create a patch instance.
 
-        :param data:
-            Dictionary containing the lobotomy data to use in mock calls
-            during the lifetime of this patch. This can be the default None
-            value if a path value is set instead.
         :param path:
             Path to a configuration file containing the lobotomy data to use
             in mock calls during the lifetime of this patch. This can be the
             default value if a data value is set instead.
+        :param data:
+            Dictionary containing the lobotomy data to use in mock calls
+            during the lifetime of this patch. This can be the default None
+            value if a path value is set instead.
         :param prefix:
             An optional key or multi-key prefix within the path-loaded data
             object where the lobotomy data resides. Use this when the

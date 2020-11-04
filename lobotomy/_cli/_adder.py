@@ -11,7 +11,7 @@ from lobotomy._cli import _definitions
 
 
 def _get_path(
-        context: '_definitions.CliContext',
+    context: '_definitions.CliContext',
 ) -> typing.Optional[pathlib.Path]:
     if context.args.configuration_file_path in [None, '-']:
         return None
@@ -24,8 +24,7 @@ def _get_path(
 
 
 def _mutate_service(
-        service_data: dict,
-        method: '_services.Method',
+    service_data: dict, method: '_services.Method',
 ) -> typing.NoReturn:
     response_type = method.output.get('type', 'structure')
     new_response = method.configuration_output
@@ -73,8 +72,7 @@ def run(context: '_definitions.CliContext') -> '_definitions.ExecutionResult':
     if path:
         _fio.write(path, configs, prefix, file_format=file_format)
         return _definitions.ExecutionResult(
-            code='ADDED',
-            message='New call has been added to the configs.'
+            code='ADDED', message='New call has been added to the configs.'
         ).echo()
 
     if file_format == 'json':
@@ -85,6 +83,5 @@ def run(context: '_definitions.CliContext') -> '_definitions.ExecutionResult':
         print(yaml.safe_dump(configs))
 
     return _definitions.ExecutionResult(
-        code='ECHOED',
-        message='New call has been echoed to stdout.'
+        code='ECHOED', message='New call has been echoed to stdout.'
     )

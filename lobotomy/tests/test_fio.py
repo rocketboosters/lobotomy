@@ -9,13 +9,7 @@ from pytest import mark
 from lobotomy import _fio
 
 SOURCE_DATA = {
-    'prefix': {
-        'subprefix': {
-            'clients': {
-                'sts': {'get_caller_identity': {}},
-            }
-        }
-    }
+    'prefix': {'subprefix': {'clients': {'sts': {'get_caller_identity': {}},}}}
 }
 
 SCENARIOS = (
@@ -26,9 +20,7 @@ SCENARIOS = (
 
 
 def _make_path(
-        data: str,
-        file_format: str = 'json',
-        exists: bool = True,
+    data: str, file_format: str = 'json', exists: bool = True,
 ):
     """Creates a mocked pathlib.Path object to return and use during testing."""
     path = MagicMock()
