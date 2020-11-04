@@ -1,8 +1,8 @@
 # Lobotomy
 
 [![PyPI version](https://badge.fury.io/py/lobotomy.svg)](https://badge.fury.io/py/lobotomy)
-[![build status](https://gitlab.com/rocket-boosters/lobotomy/badges/master/pipeline.svg)](https://gitlab.com/rocket-boosters/lobotomy/commits/main)
-[![coverage report](https://gitlab.com/rocket-boosters/lobotomy/badges/master/coverage.svg)](https://gitlab.com/rocket-boosters/lobotomy/commits/main)
+[![build status](https://gitlab.com/rocket-boosters/lobotomy/badges/main/pipeline.svg)](https://gitlab.com/rocket-boosters/lobotomy/commits/main)
+[![coverage report](https://gitlab.com/rocket-boosters/lobotomy/badges/main/coverage.svg)](https://gitlab.com/rocket-boosters/lobotomy/commits/main)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 - [Installation](#installation)
