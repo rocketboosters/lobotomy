@@ -1,19 +1,24 @@
 name: lint
 on: [push]
 jobs:
-  black:
-    runs-on: ubuntu-latest
-    container: python:3
-    steps:
-      - run: ls -la
-      - run: pip install poetry
-      - run: poetry install
-      - run: black --check .
+#  black:
+#    runs-on: ubuntu-latest
+#    container: python:3
+#    steps:
+#      - run: ls -la /__w
+#      - run: ls -la /__w/lobotomy
+#      - run: pip install poetry
+#      - run: poetry install
+#      - run: black --check .
   pytest:
     runs-on: ubuntu-latest
     container: python:3
     steps:
-      - run: ls -la
+      - run: pwd
+      - run: ls -la /__w
+      - run: ls -la /__w/lobotomy
+      - run: ls -la /__w/lobotomy/lobotomy
+      - run: ls -la /__w/lobotomy/lobotomy
       - run: pip install poetry
       - run: poetry install
       - run: pytest --cov-report=term-missing  --cov=lobotomy .
