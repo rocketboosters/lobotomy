@@ -4,7 +4,7 @@ from lobotomy import _services
 
 
 def validate_input(
-    method: '_services.Method',
+    method: "_services.Method",
     request_args: typing.Iterable[typing.Any],
     request_kwargs: typing.Dict[str, typing.Any],
 ) -> typing.NoReturn:
@@ -25,14 +25,14 @@ def validate_input(
         Keyword arguments made to the method call.
     """
     definition = method.input
-    keys = [k for k in definition['members'].keys() if k[0].lower() != k[0]]
+    keys = [k for k in definition["members"].keys() if k[0].lower() != k[0]]
     request = {
         **{keys[i]: a for i, a in enumerate(request_args)},
         **(request_kwargs or {}),
     }
 
     specified_keys = request.keys()
-    required = set(definition.get('required', []))
+    required = set(definition.get("required", []))
     assert required <= set(
         specified_keys
     ), f"""
@@ -41,7 +41,7 @@ def validate_input(
         """
 
     unknown_keys = set(
-        [k for k in (set(specified_keys) - set(keys)) if not k.startswith('_')]
+        [k for k in (set(specified_keys) - set(keys)) if not k.startswith("_")]
     )
     assert not unknown_keys, f"""
         Unknown arguments {unknown_keys} found on call to

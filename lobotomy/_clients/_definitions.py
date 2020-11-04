@@ -21,11 +21,11 @@ class ClientError(Exception):
 
     @property
     def response(self) -> typing.Dict[str, typing.Any]:
-        return {'Error': {'Code': self._code, 'Message': self._message}}
+        return {"Error": {"Code": self._code, "Message": self._message}}
 
-    def populate(self, **kwargs) -> 'ClientError':
-        self._code = kwargs.get('Code')
-        self._message = kwargs.get('Message')
+    def populate(self, **kwargs) -> "ClientError":
+        self._code = kwargs.get("Code")
+        self._message = kwargs.get("Message")
         return self
 
 
@@ -36,7 +36,11 @@ class Client:
     """
 
     def __init__(
-        self, session: 'lobotomy.Session', service_name: str, *args, **kwargs,
+        self,
+        session: "lobotomy.Session",
+        service_name: str,
+        *args,
+        **kwargs,
     ):
         """Populate with the loaded scenario data."""
         self._service_name = service_name
@@ -55,7 +59,8 @@ class Client:
 
     def _call(self, called_method_name: str, *args, **kwargs):
         raw = self._session.lobotomy.get_response(
-            self._service_name, called_method_name,
+            self._service_name,
+            called_method_name,
         )
         method = self._service.lookup(called_method_name)
         _validation.validate_input(method, args, kwargs)
@@ -63,14 +68,14 @@ class Client:
 
         self._calls.append(
             {
-                'method': called_method_name,
-                'args': args,
-                'kwargs': kwargs,
-                'response': response,
+                "method": called_method_name,
+                "args": args,
+                "kwargs": kwargs,
+                "response": response,
             }
         )
-        if 'Error' in response:
-            raise ClientError().populate(**response['Error'])
+        if "Error" in response:
+            raise ClientError().populate(**response["Error"])
         return response
 
     def __getattr__(self, item: str):
@@ -79,7 +84,7 @@ class Client:
         scenario data that defines the execution.
         """
         if not self._service.has(item):
-            raise ValueError(f'No such function {item} found ')
+            raise ValueError(f"No such function {item} found ")
 
         return functools.partial(self._call, item)
 

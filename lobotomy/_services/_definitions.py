@@ -43,20 +43,22 @@ class Method(DataWrapper):
     #: Method operation definition from the service specification.
     data: dict
     #: Service in which this method resides.
-    service: 'Service'
+    service: "Service"
 
     @property
     def input(self) -> dict:
         """Definition for the input signature of this method."""
         return _formating.parse_definition_item(
-            self.service.shapes, self.get('input') or {},
+            self.service.shapes,
+            self.get("input") or {},
         )
 
     @property
     def output(self) -> dict:
         """Definition for the output/response signature of this method."""
         return _formating.parse_definition_item(
-            self.service.shapes, self.get('output') or {},
+            self.service.shapes,
+            self.get("output") or {},
         )
 
     @property
@@ -91,7 +93,7 @@ class Service(DataWrapper):
     @property
     def version(self) -> str:
         """Version of the service specification."""
-        return self.get('version', '1.0')
+        return self.get("version", "1.0")
 
     @property
     def metadata(self) -> dict:
@@ -99,7 +101,7 @@ class Service(DataWrapper):
         Metadata associated with the service as defined in the botocore
         specification.
         """
-        return self.get('metadata') or {}
+        return self.get("metadata") or {}
 
     @property
     def operations(self) -> dict:
@@ -109,7 +111,7 @@ class Service(DataWrapper):
         the Service.lookup(method_name) to retrieve the values for
         snake_case definitions.
         """
-        return self.get('operations') or {}
+        return self.get("operations") or {}
 
     @property
     def shapes(self) -> dict:
@@ -117,16 +119,16 @@ class Service(DataWrapper):
         Shape definitions from the service specification that define the
         input, output and exception type objects and their arguments.
         """
-        return self.get('shapes') or {}
+        return self.get("shapes") or {}
 
     def has(self, method_name: str) -> bool:
         """Determines whether or not the spec defines the given method."""
-        value = method_name.lower().replace('_', '')
+        value = method_name.lower().replace("_", "")
         return value in self.operations
 
-    def lookup(self, method_name: str) -> 'Method':
+    def lookup(self, method_name: str) -> "Method":
         """Fetch the Method data for the associated method name."""
-        value = method_name.lower().replace('_', '')
+        value = method_name.lower().replace("_", "")
         return Method(
             name=method_name,
             data=self.operations.get(value) or {},
@@ -150,21 +152,19 @@ def _get_specification(service_name: str) -> dict:
         snake_case names are the ones invoked on the client.
     """
     directory = (
-        pathlib.Path(botocore.__file__)
-        .parent.joinpath('data', service_name)
-        .absolute()
+        pathlib.Path(botocore.__file__).parent.joinpath("data", service_name).absolute()
     )
     folder = next(
         (
             n
             for n in sorted(directory.iterdir(), reverse=True)
-            if n.name.startswith('20')
+            if n.name.startswith("20")
         )
     )
     spec = json.loads(
-        directory.joinpath(folder, 'service-2.json').read_text(encoding='utf-8')
+        directory.joinpath(folder, "service-2.json").read_text(encoding="utf-8")
     )
-    spec['operations'] = {k.lower(): v for k, v in spec['operations'].items()}
+    spec["operations"] = {k.lower(): v for k, v in spec["operations"].items()}
     return spec
 
 
@@ -182,8 +182,8 @@ def _get_exceptions(specification: dict) -> typing.Dict[str, dict]:
         set on the client.exceptions object.
     """
     errors = {
-        error['shape']
-        for item in specification['operations'].values()
-        for error in (item.get('errors') or [])
+        error["shape"]
+        for item in specification["operations"].values()
+        for error in (item.get("errors") or [])
     }
-    return {e: specification['shapes'][e] for e in errors}
+    return {e: specification["shapes"][e] for e in errors}

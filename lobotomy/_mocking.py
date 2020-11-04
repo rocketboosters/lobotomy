@@ -18,7 +18,7 @@ class Patch:
         path: typing.Union[None, str, pathlib.Path] = None,
         data: dict = None,
         prefix: typing.Union[None, str, typing.Iterable[str]] = None,
-        patch_path: str = 'boto3.Session',
+        patch_path: str = "boto3.Session",
     ):
         """
         Create a patch instance.
@@ -55,7 +55,7 @@ class Patch:
         elif self.path:
             lobotomy = lbm.Lobotomy.from_file(self.path, prefix=self.prefix)
         else:
-            raise ValueError('lobotomy.Patch must specify data or path.')
+            raise ValueError("lobotomy.Patch must specify data or path.")
 
         @patch(self.patch_path, new=lobotomy)
         def lobotomy_decorated(*args, **kwargs):

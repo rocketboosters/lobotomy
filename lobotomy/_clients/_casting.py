@@ -51,7 +51,7 @@ def _cast_structure(definition: dict, value: dict) -> dict:
         The cast version of the specified value that matches the format of
         the value as it would be returned in a boto client response.
     """
-    return {k: cast(definition['members'].get(k), v) for k, v in value.items()}
+    return {k: cast(definition["members"].get(k), v) for k, v in value.items()}
 
 
 def _cast_noop(definition: dict, value: typing.Any) -> typing.Any:
@@ -97,11 +97,12 @@ def _cast_list(definition: dict, value: list) -> list:
         The cast version of the specified value that matches the format of
         the value as it would be returned in a boto client response.
     """
-    return [cast(definition.get('member'), v) for v in value]
+    return [cast(definition.get("member"), v) for v in value]
 
 
 def _cast_string(
-    definition: dict, value: typing.Any,
+    definition: dict,
+    value: typing.Any,
 ) -> typing.Union[str, StreamingBody]:
     """
     Converts a string botocore type into its formatted value. If the
@@ -119,13 +120,14 @@ def _cast_string(
         the value as it would be returned in a boto client response.
     """
     output = str(value)
-    if definition.get('streaming'):
+    if definition.get("streaming"):
         output = StreamingBody(InternalStreamer(output), len(output))
     return output
 
 
 def _cast_blob(
-    definition: dict, value: typing.Any,
+    definition: dict,
+    value: typing.Any,
 ) -> typing.Union[bytes, StreamingBody]:
     """
     Converts a blob botocore type into its formatted value. If the
@@ -143,13 +145,14 @@ def _cast_blob(
         the value as it would be returned in a boto client response.
     """
     output = str(value).encode()
-    if definition.get('streaming'):
+    if definition.get("streaming"):
         output = StreamingBody(InternalStreamer(output), len(output))
     return output
 
 
 def _cast_timestamp(
-    definition: dict, value: typing.Union[float, int, str],
+    definition: dict,
+    value: typing.Union[float, int, str],
 ) -> datetime.datetime:
     """
     Converts a string date definition into a datetime as would be returned
@@ -196,15 +199,15 @@ def cast(definition: typing.Optional[dict], value: typing.Any) -> typing.Any:
         # the value as-is.
         return value
 
-    data_type = definition.get('type')
+    data_type = definition.get("type")
     conversions = {
-        'structure': _cast_structure,
-        'list': _cast_list,
-        'timestamp': _cast_timestamp,
-        'string': _cast_string,
-        'long': _cast_integer,
-        'integer': _cast_integer,
-        'blob': _cast_blob,
+        "structure": _cast_structure,
+        "list": _cast_list,
+        "timestamp": _cast_timestamp,
+        "string": _cast_string,
+        "long": _cast_integer,
+        "integer": _cast_integer,
+        "blob": _cast_blob,
     }
     caster = conversions.get(data_type, _cast_noop)
     output = caster(definition, value)

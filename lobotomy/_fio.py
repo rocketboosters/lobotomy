@@ -14,10 +14,10 @@ def _read_file(path: pathlib.Path, file_format: str = None) -> dict:
 
     contents = p.read_text()
 
-    if file_format == 'yaml' or path.name.endswith(('.yaml', '.yml')):
+    if file_format == "yaml" or path.name.endswith((".yaml", ".yml")):
         return yaml.safe_load(contents)
 
-    if file_format == 'toml' or path.name.endswith('.toml'):
+    if file_format == "toml" or path.name.endswith(".toml"):
         return toml.loads(contents)
 
     return json.loads(contents)
@@ -93,9 +93,9 @@ def write(
 
     child.update(configs)
 
-    if file_format == 'yaml' or path.name.endswith(('.yaml', '.yml')):
+    if file_format == "yaml" or path.name.endswith((".yaml", ".yml")):
         contents = yaml.safe_dump(data)
-    elif file_format == 'toml' or path.name.endswith('.toml'):
+    elif file_format == "toml" or path.name.endswith(".toml"):
         contents = toml.dumps(data)
     else:
         contents = json.dumps(data, indent=2)
