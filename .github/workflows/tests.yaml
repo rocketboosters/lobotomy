@@ -2,13 +2,15 @@ name: lint
 on: [push]
 jobs:
   black:
-    runs-on: python:3
+    runs-on: ubuntu-latest
+    container: python:3
     steps:
       - run: pip install poetry
       - run: poetry install
       - run: black --check .
   pytest:
-    runs-on: python:3
+    runs-on: ubuntu-latest
+    container: python:3
     steps:
       - run: pip install poetry
       - run: poetry install
