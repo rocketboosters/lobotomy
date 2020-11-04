@@ -57,8 +57,4 @@ class Patch:
         else:
             lobotomy = lbm.Lobotomy()
 
-        @patch(self.patch_path, new=lobotomy)
-        def lobotomy_decorated(*args, **kwargs):
-            caller(*args, lobotomy, **kwargs)
-
-        return lobotomy_decorated
+        return patch(self.patch_path, new_callable=lambda: lobotomy)(caller)

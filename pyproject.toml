@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "lobotomy"
-version = "0.1.5"
+version = "0.1.6"
 license = "MIT"
 description = "Boto3 low-level client mocking library."
 authors = ["Scott Ernst <swernst@gmail.com>"]
@@ -8,7 +8,7 @@ readme = "README.md"
 homepage = "https://gitlab.com/rocket-boosters/lobotomy"
 repository = "https://gitlab.com/rocket-boosters/lobotomy"
 documentation = "https://gitlab.com/rocket-boosters/lobotomy"
-keywords = ["aws", "boto3", "testing"]
+keywords = ["aws", "boto3", "botocore", "testing"]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Environment :: Console",
@@ -22,11 +22,10 @@ classifiers = [
   "Topic :: Utilities",
   "Typing :: Typed"
 ]
-
 exclude = ["lobotomy/tests"]
 
 [tool.poetry.dependencies]
-python = "^3.8.1"
+python = "^3.8.0"
 boto3 = "^1.16.0"
 toml = "^0.10.1"
 PyYAML = "^5.3.1"
