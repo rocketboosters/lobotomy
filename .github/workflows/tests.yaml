@@ -5,6 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     container: python:3
     steps:
+      - run: ls -la
       - run: pip install poetry
       - run: poetry install
       - run: black --check .
@@ -12,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     container: python:3
     steps:
+      - run: ls -la
       - run: pip install poetry
       - run: poetry install
       - run: pytest --cov-report=term-missing  --cov=lobotomy .
