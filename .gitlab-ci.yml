@@ -12,6 +12,7 @@ pytest-py38:
   image: python:3.8
   stage: check
   script:
+    - pip install poetry
     - poetry install
     - >
       poetry run
@@ -31,6 +32,7 @@ pytest-py39:
   stage: check
   coverage: '/^TOTAL.*\s+\d+\s+\d+\s+(\d+)%/'
   script:
+    - pip install poetry
     - poetry install
     - >
       poetry run
