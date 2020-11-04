@@ -14,11 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     container: python:3
     steps:
-      - run: pwd
-      - run: ls -la /__w
-      - run: ls -la /__w/lobotomy
-      - run: ls -la /__w/lobotomy/lobotomy
-      - run: ls -la /__w/lobotomy/lobotomy
+      - run: ls -la ~
+      - run: ls -la /github/home
+      - run: ls -la /github/workflow
       - run: pip install poetry
       - run: poetry install
       - run: pytest --cov-report=term-missing  --cov=lobotomy .
