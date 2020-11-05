@@ -23,15 +23,15 @@ def test_creation_empty_patched(lob: lobotomy.Lobotomy):
 def test_session_properties(lob: lobotomy.Lobotomy):
     """Should return the expected values for session properties."""
     session_data = {
-        'profile_name': 'foo-bar',
-        'region_name': 'us-north-1',
-        'available_profiles': ['foo-bar', 'baz'],
+        "profile_name": "foo-bar",
+        "region_name": "us-north-1",
+        "available_profiles": ["foo-bar", "baz"],
     }
-    lob.data = {'session': session_data}
+    lob.data = {"session": session_data}
     session = lob()
-    assert session.profile_name == 'foo-bar'
-    assert session.region_name == 'us-north-1'
-    assert session.available_profiles == ['foo-bar', 'baz']
+    assert session.profile_name == "foo-bar"
+    assert session.region_name == "us-north-1"
+    assert session.available_profiles == ["foo-bar", "baz"]
 
 
 @lobotomy.Patch()
