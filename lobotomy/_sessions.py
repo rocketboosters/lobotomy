@@ -9,6 +9,49 @@ from botocore.session import Session as BotocoreSession
 import lobotomy
 
 
+class ReadOnlyCredentials(typing.NamedTuple):
+    """Data structure that matches ReadOnlyCredentials from botocore library."""
+
+    access_key: str
+    secret_key: str
+    token: typing.Optional[str]
+
+
+class Credentials:
+    """
+    Mock botocore Credentials object used by Session.get_credentials during
+    lobotomy tests.
+    """
+
+    def __init__(self, data: dict = None):
+        """Stores configuration data for access."""
+        self._data = data or {}
+
+    @property
+    def method(self) -> str:
+        """Authentication method by which credentials were loaded."""
+        return self._data.get("method", "manual")
+
+    @property
+    def access_key(self) -> str:
+        """AWS access key for the associated session."""
+        return self._data.get("access_key", "A123LOBOTOMY")
+
+    @property
+    def secret_key(self) -> str:
+        """AWS secret key for the associated session."""
+        return self._data.get("secret_key", "lobotomysecretkey")
+
+    @property
+    def token(self) -> typing.Optional[str]:
+        """Optional AWS access token for the associated session."""
+        return self._data.get("token")
+
+    def get_frozen_credentials(self) -> "ReadOnlyCredentials":
+        """A named-tuple form of the credentials for the associated session."""
+        return ReadOnlyCredentials(self.access_key, self.secret_key, self.token)
+
+
 class Session:
     """
     Mock boto3.Session object to use in place of the real one during lobotomy
@@ -56,6 +99,10 @@ class Session:
     def available_profiles(self) -> typing.List[str]:
         """List of AWS profiles available for use in the session."""
         return self._data.get("available_profiles") or []
+
+    def get_credentials(self) -> "Credentials":
+        """Retrieves the credentials associated with the session."""
+        return Credentials(self._data.get("credentials") or {})
 
     def client(self, service_name: str, *args, **kwargs) -> "lobotomy.Client":
         """

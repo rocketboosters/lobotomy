@@ -19,7 +19,7 @@ pytest-py38:
       py.test
       --verbose
       --cov-report term-missing
-      --cov=lobotomy
+      --cov=.
       .
   artifacts:
     paths:
@@ -39,9 +39,12 @@ pytest-py39:
       py.test
       --verbose
       --cov-report term-missing
-      --cov=lobotomy
+      --cov-report xml
+      --cov=.
       .
   artifacts:
+    reports:
+      cobertura: coverage.xml
     paths:
       - .coverage
       - coverage.xml

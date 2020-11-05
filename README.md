@@ -14,6 +14,7 @@
 - [Advanced Usage](#advanced-usage)
     - [Key Prefixes](#key-prefixes)
     - [Patching Targets](#patching-targets)
+    - [Session Configuration](#session-configuration)
     
 The *lo&#8226;**boto**&#8226;my* library allows one to mock the low-level boto3
 client libraries efficiently, especially in more complex scenario testing 
@@ -490,3 +491,29 @@ config_path = pathlib.Path(__file__).parent.joinpath('test.yaml')
 def test_another_patch_path(lobotomized: lobotomy.Lobotomy):
     """..."""
 ```
+
+## Session Configuration
+
+In addition to the clients configurations described above, it is also possible
+to configure the session values as well with the `session:` attribute. The
+available configuration settings for the session are:
+
+```yaml
+session:
+  profile_name: some-profile
+  region_name: us-west-2
+  available_profiles:
+    - some-profile
+    - some-other-profile
+  credentials:
+    access_key: A123KEY
+    secret_key: somesecretkeyvalue
+    token: theaccesstokenifset
+    method: how-the-credentials-were-loaded
+
+clients:
+  ...
+```
+
+All of these values are optional and in cases where they are omitted, but the session
+requires having them, they will be defaulted.
