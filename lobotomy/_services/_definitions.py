@@ -2,8 +2,10 @@ import dataclasses
 import json
 import pathlib
 import typing
+import importlib.resources
 
 import botocore
+import yaml
 
 from lobotomy._services import _formating
 
@@ -164,6 +166,22 @@ def _get_specification(service_name: str) -> dict:
     spec = json.loads(
         directory.joinpath(folder, "service-2.json").read_text(encoding="utf-8")
     )
+
+    # Augment the botocore service definitions with client additions added by boto3
+    # for non-standard api operations. The notable example here is s3.upload_file,
+    # which is a convenience wrapper around the much lower-level multipart upload
+    # api methods.
+    package = f"{__package__}._augmentations"
+    resource_name = f"{service_name}.yaml"
+    if importlib.resources.is_resource(package, resource_name):
+        extras = yaml.safe_load(importlib.resources.read_text(package, resource_name))
+
+        for key, value in (extras.get("operations") or {}).items():
+            spec["operations"][key] = value
+
+        for key, value in (extras.get("shapes") or {}).items():
+            spec["shapes"][key] = value
+
     spec["operations"] = {k.lower(): v for k, v in spec["operations"].items()}
     return spec
 

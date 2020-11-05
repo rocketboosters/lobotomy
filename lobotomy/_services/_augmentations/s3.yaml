@@ -1,0 +1,34 @@
+operations:
+  UploadFile:
+    input: {shape: UploadFileRequest}
+    output: {shape: UploadFileOutput}
+  UploadFileObj:
+    input: {shape: UploadFileObjRequest}
+    output: {shape: UploadFileOutput}
+
+shapes:
+  UploadFileRequest:
+    type: structure
+    required: [Filename, Bucket, Key]
+    members:
+      Filename: {type: object}
+      Bucket: {shape: BucketName}
+      Key: {shape: ObjectKey}
+      ExtraArgs: {type: dict}
+      Callback: {type: function}
+      Config: {type: object}
+
+  UploadFileOutput:
+    type: structure
+    members: {}
+
+  UploadFileObjRequest:
+    type: structure
+    required: [Filename, Bucket, Key]
+    members:
+      FileObj: {type: object}
+      Bucket: {shape: BucketName}
+      Key: {shape: ObjectKey}
+      ExtraArgs: {type: dict}
+      Callback: {type: function}
+      Config: {type: object}
