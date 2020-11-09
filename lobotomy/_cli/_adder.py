@@ -22,7 +22,7 @@ def _get_path(
 def _mutate_service(
     service_data: dict,
     method: "_services.Method",
-) -> typing.NoReturn:
+) -> None:
     response_type = method.output.get("type", "structure")
     new_response = method.configuration_output
 
@@ -50,7 +50,7 @@ def run(context: "_definitions.CliContext") -> "_definitions.ExecutionResult":
     prefix = [item for item in (context.args.prefix or "").split(".") if item]
 
     try:
-        configs = _fio.read(path, prefix, file_format=file_format)
+        configs = _fio.read(path, prefix, file_format=file_format)  # type: ignore
     except (AttributeError, FileNotFoundError, TypeError):
         configs = {}
 

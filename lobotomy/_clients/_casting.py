@@ -13,10 +13,10 @@ class InternalStreamer:
     body behaviors in returned streaming response objects.
     """
 
-    def __init__(self, source: typing.AnyStr):
+    def __init__(self, source: typing.Union[bytes, str]):
         """Wrap the source string in a streaming interface."""
         self._cursor = 0
-        self._source = source
+        self._source: typing.Union[bytes, str] = source
 
         # This exists for botocore compatibility setting timeouts.
         self._fp = MagicMock()
@@ -199,7 +199,7 @@ def cast(definition: typing.Optional[dict], value: typing.Any) -> typing.Any:
         # the value as-is.
         return value
 
-    data_type = definition.get("type")
+    data_type: typing.Optional[str] = definition.get("type")
     conversions = {
         "structure": _cast_structure,
         "list": _cast_list,
@@ -208,7 +208,10 @@ def cast(definition: typing.Optional[dict], value: typing.Any) -> typing.Any:
         "long": _cast_integer,
         "integer": _cast_integer,
         "blob": _cast_blob,
+        "noop": _cast_noop,
     }
-    caster = conversions.get(data_type, _cast_noop)
-    output = caster(definition, value)
-    return output
+    caster: typing.Any = conversions.get(
+        data_type or "noop",
+        _cast_noop,
+    )
+    return caster(definition, value)

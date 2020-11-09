@@ -8,7 +8,7 @@ from pytest import mark
 
 from lobotomy import _fio
 
-SOURCE_DATA = {
+SOURCE_DATA: dict = {
     "prefix": {
         "subprefix": {
             "clients": {

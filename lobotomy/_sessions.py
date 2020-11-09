@@ -68,7 +68,7 @@ class Session:
         profile_name: str = None,
         source_lobotomy: "Lobotomy" = None,
     ):
-        self.lobotomy: Lobotomy = source_lobotomy
+        self.lobotomy: Lobotomy = source_lobotomy or Lobotomy()
 
         self._constructed = {
             "aws_access_key_id": aws_access_key_id,
@@ -78,12 +78,12 @@ class Session:
             "botocore_session": botocore_session,
             "profile_name": profile_name,
         }
-        self._definition = source_lobotomy.get_session_data()
+        self._definition = self.lobotomy.get_session_data()
         self._data = {
             **self._definition,
             **{k: v for k, v in self._constructed.items() if v is not None},
         }
-        self._clients = {}
+        self._clients: typing.Dict[str, "lobotomy.Client"] = {}
 
     @property
     def profile_name(self) -> typing.Optional[str]:
@@ -230,11 +230,12 @@ class Lobotomy:
             of this lobotomy patch. Useful for mixing lobotomy clients with other
             mocking clients in complex testing scenarios.
         """
-        contents = pathlib.Path(path).absolute().read_text()
+        p = pathlib.Path(path)
+        contents = p.absolute().read_text()
 
-        if path.name.endswith((".yaml", ".yml")):
+        if p.name.endswith((".yaml", ".yml")):
             data = yaml.safe_load(contents)
-        elif path.name.endswith(".toml"):
+        elif p.name.endswith(".toml"):
             data = toml.loads(contents)
         else:
             data = json.loads(contents)

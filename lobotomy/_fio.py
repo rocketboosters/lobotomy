@@ -18,7 +18,7 @@ def _read_file(path: pathlib.Path, file_format: str = None) -> dict:
         return yaml.safe_load(contents)
 
     if file_format == "toml" or path.name.endswith(".toml"):
-        return toml.loads(contents)
+        return typing.cast(dict, toml.loads(contents))
 
     return json.loads(contents)
 
@@ -45,7 +45,7 @@ def read(
         given file. This will be an empty dictionary if no configuration
         exists yet.
     """
-    data = _read_file(path, file_format)
+    data = _read_file(pathlib.Path(path), file_format)
     if not prefix:
         return data or {}
 
@@ -61,7 +61,7 @@ def write(
     configs: typing.Dict[str, typing.Any],
     prefix: typing.Union[str, typing.Iterable[str]] = None,
     file_format: str = None,
-) -> typing.NoReturn:
+) -> None:
     """
     Writes the specified configuration file with updated configuration data.
     If a prefix is specified, the data will be inserted at the given prefix.

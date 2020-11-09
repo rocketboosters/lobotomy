@@ -7,7 +7,7 @@ def validate_input(
     method: "_services.Method",
     request_args: typing.Iterable[typing.Any],
     request_kwargs: typing.Dict[str, typing.Any],
-) -> typing.NoReturn:
+) -> None:
     """
     Compares the request made to its botocore definition to raise assertion
     errors if there are missing required arguments or if there are extraneous
