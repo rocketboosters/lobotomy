@@ -1,9 +1,12 @@
 # Lobotomy
 
-[![PyPI version](https://badge.fury.io/py/lobotomy.svg)](https://badge.fury.io/py/lobotomy)
+[![PyPI version](https://badge.fury.io/py/lobotomy.svg)](https://pypi.org/project/lobotomy/)
 [![build status](https://gitlab.com/rocket-boosters/lobotomy/badges/main/pipeline.svg)](https://gitlab.com/rocket-boosters/lobotomy/commits/main)
 [![coverage report](https://gitlab.com/rocket-boosters/lobotomy/badges/main/coverage.svg)](https://gitlab.com/rocket-boosters/lobotomy/commits/main)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Code style: flake8](https://img.shields.io/badge/code%20style-flake8-white)](https://gitlab.com/pycqa/flake8)
+[![Code style: mypy](https://img.shields.io/badge/code%20style-mypy-white)](http://mypy-lang.org/)
+[![PyPI - License](https://img.shields.io/pypi/l/lobotomy)](https://pypi.org/project/lobotomy/)
 
 - [Installation](#installation)
 - [Tl;dr Usage](#tldr-usage)
@@ -15,7 +18,8 @@
     - [Key Prefixes](#key-prefixes)
     - [Patching Targets](#patching-targets)
     - [Session Configuration](#session-configuration)
-    
+    - [Client Overrides](#client-overrides)
+
 The *lo&#8226;**boto**&#8226;my* library allows one to mock the low-level boto3
 client libraries efficiently, especially in more complex scenario testing 
 situations, using configuration-based response definitions. The benefit is a
@@ -517,3 +521,24 @@ clients:
 
 All of these values are optional and in cases where they are omitted, but the session
 requires having them, they will be defaulted.
+
+
+## Client Overrides
+
+There are cases where it is desirable to replace one or more service clients with
+non-lobotomy objects. Lobotomy supports that by adding client overrides to the patched
+lobotomy object:
+
+```python
+from unittest.mock import MagicMock
+
+import lobotomy
+
+
+@lobotomy.Patch()
+def test_example(lobotomized: lobotomy.Lobotomy):
+    """Should do something..."""
+    mock_dynamo_db_client = MagicMock()
+    lobotomized.add_client_override('dynamodb', mock_dynamo_db_client)
+    # continue testing...
+```
