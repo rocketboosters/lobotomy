@@ -55,3 +55,25 @@ def test_credentials(lob: lobotomy.Lobotomy):
     assert frozen.access_key == "A123"
     assert frozen.secret_key == "123abc"
     assert frozen.token == "foobar"
+
+
+@lobotomy.Patch(client_overrides={"sts": {"foo": "bar"}})
+def test_override(lob: lobotomy.Lobotomy):
+    """Should return the override dictionary for the STS client."""
+    session = lob()
+    assert session.client("sts") == {"foo": "bar"}
+
+
+@lobotomy.Patch()
+def test_override_manual(lob: lobotomy.Lobotomy):
+    """Should return the override dictionary for the STS client."""
+    session = lob.add_client_override("sts", {"foo": "bar"})()
+    assert session.client("sts") == {"foo": "bar"}
+
+
+@lobotomy.Patch(client_overrides={"sts": {"foo": "bar"}})
+def test_override_removed(lob: lobotomy.Lobotomy):
+    """Should not return the override dictionary for the STS client if removed."""
+    session = lob.remove_client_override("sts")()
+    assert session.client("sts") != {"foo": "bar"}
+    assert isinstance(session.client("sts"), lobotomy.Client)

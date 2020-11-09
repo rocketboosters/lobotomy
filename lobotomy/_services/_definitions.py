@@ -1,8 +1,8 @@
 import dataclasses
+import importlib.resources
 import json
 import pathlib
 import typing
-import importlib.resources
 
 import botocore
 import yaml

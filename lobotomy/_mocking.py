@@ -19,6 +19,7 @@ class Patch:
         data: dict = None,
         prefix: typing.Union[None, str, typing.Iterable[str]] = None,
         patch_path: str = "boto3.Session",
+        client_overrides: typing.Dict[str, typing.Any] = None,
     ):
         """
         Create a patch instance.
@@ -39,11 +40,17 @@ class Patch:
             The targeted patch target, which defaults to 'boto3.Session'.
             This can be used to override that value for cases where a
             different patch target is desirable.
+        :param client_overrides:
+            Optional dictionary containing mappings of service names to clients
+            that should be used in place of lobotomy clients during the lifecycle
+            of this lobotomy patch. Useful for mixing lobotomy clients with other
+            mocking clients in complex testing scenarios.
         """
         self.data = data
         self.path = path
         self.prefix = prefix
         self.patch_path = patch_path
+        self.client_overrides = client_overrides
 
     def __call__(self, caller: typing.Callable):
         """
@@ -51,10 +58,14 @@ class Patch:
         a patch of the boto3.Session class.
         """
         if self.data is not None:
-            lobotomy = lbm.Lobotomy(self.data)
+            lobotomy = lbm.Lobotomy(self.data, client_overrides=self.client_overrides)
         elif self.path:
-            lobotomy = lbm.Lobotomy.from_file(self.path, prefix=self.prefix)
+            lobotomy = lbm.Lobotomy.from_file(
+                self.path,
+                prefix=self.prefix,
+                client_overrides=self.client_overrides,
+            )
         else:
-            lobotomy = lbm.Lobotomy()
+            lobotomy = lbm.Lobotomy(client_overrides=self.client_overrides)
 
         return patch(self.patch_path, new_callable=lambda: lobotomy)(caller)

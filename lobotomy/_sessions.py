@@ -110,6 +110,10 @@ class Session:
         service-client is a singleton such that subsequent calls for the
         same service name will return the same object.
         """
+        override = self.lobotomy.get_client_override(service_name)
+        if override is not None:
+            return override
+
         if service_name not in self._clients:
             self._clients[service_name] = lobotomy.Client(
                 self,
@@ -126,8 +130,48 @@ class Lobotomy:
     objects during lobotomy tests.
     """
 
-    def __init__(self, data: typing.Dict[str, typing.Any] = None):
+    def __init__(
+        self,
+        data: typing.Dict[str, typing.Any] = None,
+        client_overrides: typing.Dict[str, typing.Any] = None,
+    ):
         self.data = data or {}
+        self._client_overrides = client_overrides or {}
+
+    def add_client_override(self, service_name: str, client: typing.Any) -> "Lobotomy":
+        """
+        Add an override client that will be returned instead of a lobotomy client
+        within the scope of this Lobotomy's lifecycle.
+
+        :param service_name:
+            Name of the AWS boto service of the client to be overridden.
+        :param client:
+            The replacement client object that will be returned instead of a lobotomy
+            client.
+        """
+        self._client_overrides[service_name] = client
+        return self
+
+    def remove_client_override(self, service_name: str) -> "Lobotomy":
+        """
+        Removes an overridden client if such an override exists. Will do nothing if
+        the override does not currently exist.
+
+        :param service_name:
+            Name of the AWS boto service of the client to be removed as an override.
+        """
+        if service_name in self._client_overrides:
+            del self._client_overrides[service_name]
+        return self
+
+    def get_client_override(self, service_name: str) -> typing.Any:
+        """
+        Retrieves an override client if it exists.
+
+        :param service_name:
+            Name of the AWS boto service for which to fetch an override client.
+        """
+        return self._client_overrides.get(service_name)
 
     def __call__(
         self,
@@ -167,7 +211,25 @@ class Lobotomy:
         cls,
         path: typing.Union[str, pathlib.Path],
         prefix: typing.Union[str, typing.Iterable[str]] = None,
+        client_overrides: typing.Dict[str, typing.Any] = None,
     ) -> "Lobotomy":
+        """
+        Create a patch instance.
+
+        :param path:
+            Path to a configuration file containing the lobotomy data to use
+            in mock calls during the lifetime of this patch. This can be the
+            default value if a data value is set instead.
+        :param prefix:
+            An optional key or multi-key prefix within the path-loaded data
+            object where the lobotomy data resides. Use this when the
+            configuration file for the test has a broader scope.
+        :param client_overrides:
+            Optional dictionary containing mappings of service names to clients
+            that should be used in place of lobotomy clients during the lifecycle
+            of this lobotomy patch. Useful for mixing lobotomy clients with other
+            mocking clients in complex testing scenarios.
+        """
         contents = pathlib.Path(path).absolute().read_text()
 
         if path.name.endswith((".yaml", ".yml")):
@@ -177,7 +239,7 @@ class Lobotomy:
         else:
             data = json.loads(contents)
 
-        return cls(data=_get_within(data, prefix))
+        return cls(data=_get_within(data, prefix), client_overrides=client_overrides)
 
 
 def _get_within(
