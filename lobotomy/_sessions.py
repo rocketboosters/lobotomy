@@ -7,6 +7,8 @@ import yaml
 from botocore.session import Session as BotocoreSession
 
 import lobotomy
+from lobotomy import _mutator
+from lobotomy import _services
 
 
 class ReadOnlyCredentials(typing.NamedTuple):
@@ -172,6 +174,30 @@ class Lobotomy:
             Name of the AWS boto service for which to fetch an override client.
         """
         return self._client_overrides.get(service_name)
+
+    def add_call(
+        self,
+        service_name: str,
+        method_name: str,
+        response: typing.Any = None,
+    ) -> "Lobotomy":
+        """
+        Adds a method call response to the stored data. Operates in the same fashion
+        as the CLI, in that additional adds will convert a single call into a list of
+        calls.
+
+        :param service_name:
+            Name of the AWS boto3 service in which the method call being added resides.
+        :param method_name:
+            Name of the AWS boto3 method to be called for this response within the
+            specified service.
+        :param response:
+            Boto3 response object for the given method call within the service.
+        """
+        service = _services.load_definition(service_name)
+        method = service.lookup(method_name)
+        _mutator.add_service_response(self.data, method, response)
+        return self
 
     def __call__(
         self,

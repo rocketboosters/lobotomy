@@ -66,7 +66,7 @@ import datetime
 
 my_directory = pathlib.Path(__file__).parent
 
-@lobotomy.Patch(my_directory.joinpath('test_lobotomy.yaml'))
+@lobotomy.Patch(my_directory.joinpath("test_lobotomy.yaml"))
 def test_lobotomy(lobotomized: lobotomy.Lobotomy):
     """
     Should return the mocked get_object response generated from the
@@ -76,14 +76,14 @@ def test_lobotomy(lobotomized: lobotomy.Lobotomy):
     boto3.Session. From there the low-level client interface is designed
     to match normal usage.
     """
-    s3_client = boto3.Session().client('s3')
+    s3_client = boto3.Session().client("s3")
     
     # Lobotomy will validate that you have specified the required keys
     # in your request, so Bucket and Key have to be supplied here even though
     # they are not meaningful values in this particular test scenario.
-    response = s3_client.get_object(Bucket='foo', Key='bar')
+    response = s3_client.get_object(Bucket="foo", Key="bar")
 
-    expected = b'The contents of my S3 file.'
+    expected = b"The contents of my S3 file."
     assert response['Body'].read() == expected, """
         Expect the mocked response body data to be returned as a
         StreamingBody object with blob/bytes contents. The lobotomy
@@ -164,7 +164,7 @@ import datetime
 
 my_directory = pathlib.Path(__file__).parent
 
-@lobotomy.Patch(my_directory.joinpath('test_lobotomy.yaml'))
+@lobotomy.Patch(my_directory.joinpath("test_lobotomy.yaml"))
 def test_lobotomy(lobotomized: lobotomy.Lobotomy):
     """
     Should return the mocked get_object response generated from the
@@ -174,14 +174,14 @@ def test_lobotomy(lobotomized: lobotomy.Lobotomy):
     boto3.Session. From there the low-level client interface is designed
     to match normal usage.
     """
-    s3_client = boto3.Session().client('s3')
+    s3_client = boto3.Session().client("s3")
     
     # Lobotomy will validate that you have specified the required keys
     # in your request, so Bucket and Key have to be supplied here even though
     # they are not meaningful values in this particular test scenario.
-    response = s3_client.get_object(Bucket='foo', Key='bar')
+    response = s3_client.get_object(Bucket="foo", Key="bar")
 
-    expected = b'The contents of my S3 file.'
+    expected = b"The contents of my S3 file."
     assert response['Body'].read() == expected, """
         Expect the mocked response body data to be returned as a
         StreamingBody object with blob/bytes contents. The lobotomy
@@ -215,16 +215,16 @@ in this way as:
 import lobotomy
 
 configuration = {
-    'clients': {
-        's3': {
-            'get_object': [
+    "clients": {
+        "s3": {
+            "get_object": [
                 { 
-                    'Body': 'The contents of my S3 file.',
-                    'LastModified': '2020-11-01T12:23:34Z',
+                    "Body": "The contents of my S3 file.",
+                    "LastModified": "2020-11-01T12:23:34Z",
                 },
                 {
-                    'Body': 'Another S3 file.',
-                    'LastModified': '2020-11-03T12:23:34Z',
+                    "Body": "Another S3 file.",
+                    "LastModified": "2020-11-03T12:23:34Z",
                 },
             ],
         },
@@ -240,6 +240,42 @@ def test_lobotomy(lobotomized: lobotomy.Lobotomy):
 Although one of the benefits of lobotomy is the ability to streamline the
 tests files by reducing the response configuration, which can be a bit
 verbose inside Python files and that is the highly recommended approach.
+
+A third option for simpler cases is to use the `Lobotomy.add_call()` method
+to register calls and responses.
+
+```python
+import lobotomy
+
+
+@lobotomy.Patch()
+def test_lobotomy(lobotomized: lobotomy.Lobotomy):
+    """..."""
+    lobotomized.add_call(
+        service_name="s3", 
+        method_name="get_object", 
+        response={ 
+            "Body": "The contents of my S3 file.",
+            "LastModified": "2020-11-01T12:23:34Z",
+        },
+    )
+    lobotomized.add_call(
+        service_name="s3", 
+        method_name="get_object", 
+        response={
+            "Body": "Another S3 file.",
+            "LastModified": "2020-11-03T12:23:34Z",
+        },
+    )
+```
+
+In the case above no data or path was supplied to the `lobotomy.Patch()` and instead
+call responses were registered within the test function itself. The response argument
+in the `Lobotomy.add_call()` method is optional. If omitted, a default one will be
+created instead in the same fashion as one would be created via the CLI (see below).
+
+Note that it is also possible to mix loading data and adding calls within the test
+function.
 
 ## Command Line Interface
 
@@ -461,15 +497,15 @@ To use these in a test the *prefix* must be specified in the Patch:
 import pathlib
 import lobotomy
 
-config_path = pathlib.Path(__file__).parent.joinpath('validation.yaml')
+config_path = pathlib.Path(__file__).parent.joinpath("validation.yaml")
 
 
-@lobotomy.Patch(config_path, prefix='lobotomy.test_a')
+@lobotomy.Patch(config_path, prefix="lobotomy.test_a")
 def test_a(lobotomized: lobotomy.Lobotomy):
     """..."""
 
 
-@lobotomy.Patch(config_path, prefix='lobotomy.test_b')
+@lobotomy.Patch(config_path, prefix="lobotomy.test_b")
 def test_b(lobotomized: lobotomy.Lobotomy):
     """..."""
 ```
@@ -488,10 +524,10 @@ specify the patch path argument:
 import pathlib
 import lobotomy
 
-config_path = pathlib.Path(__file__).parent.joinpath('test.yaml')
+config_path = pathlib.Path(__file__).parent.joinpath("test.yaml")
 
 
-@lobotomy.Patch(config_path, patch_path='something.else.Session')
+@lobotomy.Patch(config_path, patch_path="something.else.Session")
 def test_another_patch_path(lobotomized: lobotomy.Lobotomy):
     """..."""
 ```
@@ -539,6 +575,6 @@ import lobotomy
 def test_example(lobotomized: lobotomy.Lobotomy):
     """Should do something..."""
     mock_dynamo_db_client = MagicMock()
-    lobotomized.add_client_override('dynamodb', mock_dynamo_db_client)
+    lobotomized.add_client_override("dynamodb", mock_dynamo_db_client)
     # continue testing...
 ```

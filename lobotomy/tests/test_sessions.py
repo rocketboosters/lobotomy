@@ -20,6 +20,15 @@ def test_creation_empty_patched(lob: lobotomy.Lobotomy):
 
 
 @lobotomy.Patch()
+def test_creation_empty_added(lob: lobotomy.Lobotomy):
+    """Should patch an empty lobotomy and then work after setting data manually."""
+    lob.add_call("sts", "get_caller_identity", {"Account": "123"})
+    session = lob()
+    client = session.client("sts")
+    assert client.get_caller_identity()["Account"] == "123"
+
+
+@lobotomy.Patch()
 def test_session_properties(lob: lobotomy.Lobotomy):
     """Should return the expected values for session properties."""
     session_data = {

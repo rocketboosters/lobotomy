@@ -6,6 +6,7 @@ import toml
 import yaml
 
 from lobotomy import _fio
+from lobotomy import _mutator
 from lobotomy import _services
 from lobotomy._cli import _definitions
 
@@ -17,30 +18,6 @@ def _get_path(
         return None
 
     return pathlib.Path(context.args.configuration_file_path).expanduser().absolute()
-
-
-def _mutate_service(
-    service_data: dict,
-    method: "_services.Method",
-) -> None:
-    response_type = method.output.get("type", "structure")
-    new_response = method.configuration_output
-
-    if method.name not in service_data:
-        if response_type == "list":
-            # List entries confuse the side effect behavior of popping
-            # responses off the list. To avoid that the list responses
-            # are added as list items.
-            service_data[method.name] = [new_response]
-        else:
-            service_data[method.name] = new_response
-        return
-
-    existing = service_data[method.name]
-    if isinstance(existing, dict):
-        service_data[method.name] = [existing, new_response]
-    else:
-        service_data[method.name] = existing + [new_response]
 
 
 def run(context: "_definitions.CliContext") -> "_definitions.ExecutionResult":
@@ -58,13 +35,7 @@ def run(context: "_definitions.CliContext") -> "_definitions.ExecutionResult":
     service = _services.load_definition(service_name)
     method = service.lookup(method_name)
 
-    if "clients" not in configs:
-        configs["clients"] = {}
-
-    if service_name not in configs["clients"]:
-        configs["clients"][service_name] = {}
-
-    _mutate_service(configs["clients"][service_name], method)
+    _mutator.add_service_response(configs, method)
 
     if path:
         _fio.write(path, configs, prefix, file_format=file_format)
