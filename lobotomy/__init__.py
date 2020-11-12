@@ -5,7 +5,11 @@ import toml as _toml
 
 from ._cli import run as run_cli  # noqa
 from ._clients import Client  # noqa
-from ._clients import ClientError  # noqa
+from ._exceptions import ClientError  # noqa
+from ._exceptions import DataTypeError  # noqa
+from ._exceptions import NoResponseFound  # noqa
+from ._exceptions import NoSuchMethod  # noqa
+from ._exceptions import RequestValidationError  # noqa
 from ._mocking import Patch  # noqa
 from ._sessions import Lobotomy  # noqa
 from ._sessions import Session  # noqa

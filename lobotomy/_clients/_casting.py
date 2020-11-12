@@ -5,6 +5,8 @@ from unittest.mock import MagicMock
 import dateutil.parser
 from botocore.response import StreamingBody
 
+import lobotomy
+
 
 class InternalStreamer:
     """
@@ -214,4 +216,17 @@ def cast(definition: typing.Optional[dict], value: typing.Any) -> typing.Any:
         data_type or "noop",
         _cast_noop,
     )
-    return caster(definition, value)
+
+    try:
+        return caster(definition, value)
+    except Exception as error:
+        raise lobotomy.DataTypeError(
+            f"""
+            Failed to cast specified response data of type "{data_type}"
+            for the value:
+            {value}
+            There may be an incompatibility between the value specified in
+            the lobotomy configuration data for the response and the data type
+            expected by the return of the boto response.
+            """
+        ) from error

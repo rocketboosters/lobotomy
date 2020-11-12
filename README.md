@@ -19,6 +19,7 @@
     - [Patching Targets](#patching-targets)
     - [Session Configuration](#session-configuration)
     - [Client Overrides](#client-overrides)
+    - [Error Handling](#error-handling)
 
 The *lo&#8226;**boto**&#8226;my* library allows one to mock the low-level boto3
 client libraries efficiently, especially in more complex scenario testing 
@@ -577,4 +578,62 @@ def test_example(lobotomized: lobotomy.Lobotomy):
     mock_dynamo_db_client = MagicMock()
     lobotomized.add_client_override("dynamodb", mock_dynamo_db_client)
     # continue testing...
+```
+
+
+## Error Handling
+
+The lobotomy library mimics client error handling with a lobotomized version of the
+same interface used by the live clients. As such, handling and capturing errors works
+transparently. For example,
+
+```python
+import boto3
+import pytest
+
+import lobotomy
+
+
+@lobotomy.Patch()
+def test_client_errors(lobotomized: lobotomy.Lobotomy):
+    """Should raise the specified error."""
+    lobotomized.add_call(
+        service_name="s3",
+        method_name="list_objects",
+        response={"Error": {"Code": "NoSuchBucket", "Message": "Hello..."}},
+    )
+
+    session = boto3.Session()
+    client = session.client("s3")
+
+    with pytest.raises(client.exceptions.NoSuchBucket):
+        client.list_objects(Bucket="foo")
+```
+
+Or the generic client error handling with response codes can be used as well:
+
+
+```python
+import boto3
+import pytest
+
+import lobotomy
+
+
+@lobotomy.Patch()
+def test_client_errors(lobotomized: lobotomy.Lobotomy):
+    """Should raise the specified error."""
+    lobotomized.add_call(
+        service_name="s3",
+        method_name="list_objects",
+        response={"Error": {"Code": "NoSuchBucket", "Message": "Hello..."}},
+    )
+
+    session = boto3.Session()
+    client = session.client("s3")
+
+    with pytest.raises(lobotomy.ClientError) as exception_info:
+        client.list_objects(Bucket="foo")
+
+    assert exception_info.value.response["Error"]["Code"] == "NoSuchBucket"
 ```

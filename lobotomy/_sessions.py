@@ -208,6 +208,12 @@ class Lobotomy:
         botocore_session: BotocoreSession = None,
         profile_name: str = None,
     ) -> "Session":
+        """
+        Mimics the boto3.Session() constructor as a lobotomized session factory.
+        The arguments to this method match the arguments to the boto3.Session()
+        constructor signature and are stored within the lobotomized session as
+        part of the duck-typed interface.
+        """
         return Session(
             aws_access_key_id=aws_access_key_id,
             aws_secret_access_key=aws_secret_access_key,
@@ -219,18 +225,48 @@ class Lobotomy:
         )
 
     def get_session_data(self) -> dict:
+        """Retrieves the lobotomized configuration data assocated with the session."""
         data = self.data.get("session", self.data.get("sessions")) or {}
         if not isinstance(data, dict):
             return data.pop(0)
         return data
 
-    def get_response(self, service_name: str, method_name: str) -> dict:
+    def get_response(self, service_name: str, method_name: str) -> typing.Any:
+        """
+        Retrieves the response data for the given service and method name
+        combination from the lobotomy data. If such a response does not
+        exist, an error is raised instead.
+
+        :param service_name:
+            Name of the boto3 service in which the method call lookup is being made.
+        :param method_name:
+            Name of the method within the boto3 service for which to lookup a response.
+        :return:
+            A response object containing the lobotomized response for the given
+            service method call.
+        """
         response = self.data.get("clients", {}).get(service_name, {}).get(method_name)
+
         if response is None:
-            raise ValueError(f"No response available for {service_name}.{method_name}")
+            raise lobotomy.NoResponseFound(
+                f"""
+                No response set for "{service_name}.{method_name}()" in the
+                configuration data for this lobotomy. Check to ensure the
+                method call was included in the source configuration data.
+                """
+            )
+
         if isinstance(response, list):
+            if not response:
+                raise lobotomy.NoResponseFound(
+                    f"""
+                    No more responses set for "{service_name}.{method_name}()"
+                    in the configuration data for this lobotomy. All specified
+                    responses have been returned already.
+                    """
+                )
             return response.pop(0)
-        return typing.cast(dict, response)
+        return response
 
     @classmethod
     def from_file(
@@ -273,6 +309,23 @@ def _get_within(
     data: dict,
     prefix: typing.Union[None, str, typing.Iterable[str]],
 ) -> dict:
+    """
+    Retrieves the lobotomy data within the root data object based on the given
+    prefix. If there is no prefix, the root data object is the lobotomy data and
+    that is returned instead.
+
+    :param data:
+        Loaded configuration data containing lobotomy data either at the top-level
+        or as a descendent within the data dictionary as specified by the prefix.
+    :param prefix:
+        Optional prefix that specifies where within the data dictionary to find the
+        lobotomized data. If not specified, the data dictionary is assumed to be a
+        lobotomy data configuration dictionary. If specified, the prefix can either
+        be represented as a hierarchical list of keys to descend within the root
+        data dictionary, e.g. ["foo", "bar"] or as a dot-delimited string denoting
+        the hierarchical list of keys, e.g. "foo.bar". If one of the keys contains
+        a "." then the list form must be used.
+    """
     if not prefix:
         return data
 

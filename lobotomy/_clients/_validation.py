@@ -1,5 +1,6 @@
 import typing
 
+import lobotomy
 from lobotomy import _services
 
 
@@ -33,17 +34,22 @@ def validate_input(
 
     specified_keys = request.keys()
     required = set(definition.get("required", []))
-    assert required <= set(
-        specified_keys
-    ), f"""
-        Missing required arguments {required - set(specified_keys)}
-        on {method.service.name}.{method.name}.
-        """
+
+    if required > set(specified_keys):
+        raise lobotomy.RequestValidationError(
+            f"""
+            Missing required arguments {required - set(specified_keys)}
+            on {method.service.name}.{method.name}.
+            """
+        )
 
     unknown_keys = set(
         [k for k in (set(specified_keys) - set(keys)) if not k.startswith("_")]
     )
-    assert not unknown_keys, f"""
-        Unknown arguments {unknown_keys} found on call to
-        {method.service.name}.{method.name}.
-        """
+    if unknown_keys:
+        raise lobotomy.RequestValidationError(
+            f"""
+            Unknown arguments {unknown_keys} found on call to
+            {method.service.name}.{method.name}.
+            """
+        )

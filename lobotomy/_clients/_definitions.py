@@ -8,27 +8,6 @@ from lobotomy._clients import _casting
 from lobotomy._clients import _validation
 
 
-class ClientError(Exception):
-    """
-    An exception that mirrors the structure of a boto3/botocore exception
-    without the necessary
-    """
-
-    def __init__(self, *args, **kwargs):
-        super(ClientError, self).__init__()
-        self._code: typing.Optional[str] = None
-        self._message: typing.Optional[str] = None
-
-    @property
-    def response(self) -> typing.Dict[str, typing.Any]:
-        return {"Error": {"Code": self._code, "Message": self._message}}
-
-    def populate(self, **kwargs) -> "ClientError":
-        self._code = kwargs.get("Code")
-        self._message = kwargs.get("Message")
-        return self
-
-
 class Client:
     """
     Mocks AWS boto3.client behaviors that pull response data from data stored
@@ -53,9 +32,11 @@ class Client:
         self._session = session
 
         self.exceptions = MagicMock()
+        self._registered_exceptions = {}
         for name in self._service.exceptions:
-            new_type = type(name, (ClientError,), {})
+            new_type = type(name, (lobotomy.ClientError,), {})
             setattr(self.exceptions, name, new_type)
+            self._registered_exceptions[name] = new_type
 
     def _call(self, called_method_name: str, *args, **kwargs):
         raw = self._session.lobotomy.get_response(
@@ -75,7 +56,11 @@ class Client:
             }
         )
         if "Error" in response:
-            raise ClientError().populate(**response["Error"])
+            error = self._registered_exceptions.get(
+                response["Error"]["Code"],
+                lobotomy.ClientError,
+            )()
+            raise error.populate(**response["Error"])
         return response
 
     def __getattr__(self, item: str):
@@ -84,7 +69,14 @@ class Client:
         scenario data that defines the execution.
         """
         if not self._service.has(item):
-            raise ValueError(f"No such function {item} found ")
+            raise lobotomy.NoSuchMethod(
+                f"""
+                No boto/botocore definition found for "{self._service_name}{item}()".
+                The version of botocore installed could be out of date, or newer
+                and this service method has been removed. Please check the boto3
+                documentation to confirm the existence of this service method.
+                """
+            )
 
         return functools.partial(self._call, item)
 
