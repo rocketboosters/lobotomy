@@ -5,8 +5,35 @@ operations:
   UploadFileObj:
     input: {shape: UploadFileObjRequest}
     output: {shape: UploadFileOutput}
+  DownloadFile:
+    input: {shape: DownloadFileRequest}
+    output: {shape: DownloadFileOutput}
+  DownloadFileObj:
+    input: {shape: DownloadFileObjRequest}
+    output: {shape: DownloadFileOutput}
 
 shapes:
+  DownloadFileRequest:
+    type: structure
+    members:
+      Bucket: {type: BucketName}
+      Key: {type: ObjectKey}
+      Filename: {type: object}
+      ExtraArgs: {type: dict}
+      Callback: {type: function}
+      Config: {type: object}
+  DownloadFileObjRequest:
+    type: structure
+    members:
+      Bucket: {type: BucketName}
+      Key: {type: ObjectKey}
+      FileObj: {type: object}
+      ExtraArgs: {type: dict}
+      Callback: {type: function}
+      Config: {type: object}
+  DownloadFileOutput:
+    type: structure
+    members: {}
   UploadFileRequest:
     type: structure
     required: [Filename, Bucket, Key]
@@ -17,11 +44,6 @@ shapes:
       ExtraArgs: {type: dict}
       Callback: {type: function}
       Config: {type: object}
-
-  UploadFileOutput:
-    type: structure
-    members: {}
-
   UploadFileObjRequest:
     type: structure
     required: [Filename, Bucket, Key]
@@ -32,3 +54,6 @@ shapes:
       ExtraArgs: {type: dict}
       Callback: {type: function}
       Config: {type: object}
+  UploadFileOutput:
+    type: structure
+    members: {}
