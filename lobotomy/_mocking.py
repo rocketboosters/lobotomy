@@ -52,20 +52,29 @@ class Patch:
         self.patch_path = patch_path
         self.client_overrides = client_overrides
 
+    def _make_lobotomy(self) -> "lbm.Lobotomy":
+        """
+        Creates the lobotomy object to be used during the patch lifetime.
+        This has to be created with each call to prevent multiple scenario
+        executions for the same test function.
+        """
+        if self.data is not None:
+            return lbm.Lobotomy(
+                self.data.copy(),
+                client_overrides=self.client_overrides,
+            )
+        elif self.path:
+            return lbm.Lobotomy.from_file(
+                self.path,
+                prefix=self.prefix,
+                client_overrides=self.client_overrides,
+            )
+
+        return lbm.Lobotomy(client_overrides=self.client_overrides)
+
     def __call__(self, caller: typing.Callable):
         """
         Calls the patching decorator that wraps the test function with
         a patch of the boto3.Session class.
         """
-        if self.data is not None:
-            lobotomy = lbm.Lobotomy(self.data, client_overrides=self.client_overrides)
-        elif self.path:
-            lobotomy = lbm.Lobotomy.from_file(
-                self.path,
-                prefix=self.prefix,
-                client_overrides=self.client_overrides,
-            )
-        else:
-            lobotomy = lbm.Lobotomy(client_overrides=self.client_overrides)
-
-        return patch(self.patch_path, new_callable=lambda: lobotomy)(caller)
+        return patch(self.patch_path, new_callable=self._make_lobotomy)(caller)

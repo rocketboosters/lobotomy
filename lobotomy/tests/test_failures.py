@@ -10,7 +10,7 @@ def test_missing_file_patch():
     """Should raise a patch error when neither data nor path are specified."""
     fake_path = pathlib.Path(__file__).parent.joinpath("fake.yaml")
     with pytest.raises(FileNotFoundError):
-        lobotomy.Patch(path=fake_path)(lambda *args, **kwargs: 1)
+        lobotomy.Patch(path=fake_path)(lambda *args, **kwargs: 1)()
 
 
 @lobotomy.Patch(data={"clients": {"lambda": {}}})
