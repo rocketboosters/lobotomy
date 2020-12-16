@@ -154,7 +154,7 @@ def _cast_blob(
 
 def _cast_timestamp(
     definition: dict,
-    value: typing.Union[float, int, str],
+    value: typing.Union[float, int, str, datetime.date, datetime.datetime],
 ) -> datetime.datetime:
     """
     Converts a string date definition into a datetime as would be returned
@@ -174,11 +174,21 @@ def _cast_timestamp(
         the value as it would be returned in a boto client response.
     """
     if isinstance(value, (int, float)):
-        return datetime.datetime.fromtimestamp(value, tz=datetime.timezone.utc)
+        output = datetime.datetime.fromtimestamp(value, tz=datetime.timezone.utc)
+    elif isinstance(value, datetime.datetime):
+        output = value
+    elif isinstance(value, datetime.date):
+        output = datetime.datetime(
+            year=value.year,
+            month=value.month,
+            day=value.day,
+            tzinfo=datetime.timezone.utc,
+        )
+    else:
+        output = dateutil.parser.parse(value)
 
-    output = dateutil.parser.parse(value)
     if not output.tzinfo:
-        return output.astimezone(datetime.timezone.utc)
+        return output.replace(tzinfo=datetime.timezone.utc)
     return output
 
 
