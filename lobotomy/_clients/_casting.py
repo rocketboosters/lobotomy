@@ -146,7 +146,11 @@ def _cast_blob(
         The cast version of the specified value that matches the format of
         the value as it would be returned in a boto client response.
     """
-    output = str(value).encode()
+    if isinstance(value, bytes):
+        output = value
+    else:
+        output = str(value).encode()
+
     if definition.get("streaming"):
         output = StreamingBody(InternalStreamer(output), len(output))
     return output
