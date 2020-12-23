@@ -1,6 +1,6 @@
 import copy
-import typing
 import datetime
+import typing
 
 
 def parse_definition_item(shapes: dict, value: dict) -> dict:
@@ -63,7 +63,9 @@ def flat_cast(output: dict) -> typing.Any:
         "float": lambda: 1.0,
         "timestamp": lambda: f'{datetime.datetime.utcnow().isoformat("T")}Z',
         "list": lambda: [flat_cast(o["member"])],
-        "structure": lambda: {k: flat_cast(v) for k, v in o["members"].items()},
+        # Some calls have empty requests or responses that have no members and so here
+        # we allow for the empty possibility for the structure type.
+        "structure": lambda: {k: flat_cast(v) for k, v in o.get("members", {}).items()},
     }
     caster = type_casts.get(data_type, lambda: None)
     return caster()
