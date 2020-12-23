@@ -3,16 +3,17 @@ from importlib import metadata as _metadata
 
 import toml as _toml
 
-from ._cli import run as run_cli  # noqa
-from ._clients import Client  # noqa
-from ._exceptions import ClientError  # noqa
-from ._exceptions import DataTypeError  # noqa
-from ._exceptions import NoResponseFound  # noqa
-from ._exceptions import NoSuchMethod  # noqa
-from ._exceptions import RequestValidationError  # noqa
-from ._mocking import Patch  # noqa
-from ._sessions import Lobotomy  # noqa
-from ._sessions import Session  # noqa
+from ._cli import run as run_cli  # noqa: F401
+from ._clients import Client  # noqa: F401
+from ._exceptions import ClientError  # noqa: F401
+from ._exceptions import DataTypeError  # noqa: F401
+from ._exceptions import NoResponseFound  # noqa: F401
+from ._exceptions import NoSuchMethod  # noqa: F401
+from ._exceptions import RequestValidationError  # noqa: F401
+from ._mocking import Patch  # noqa: F401
+from ._sessions import Lobotomy  # noqa: F401
+from ._sessions import ServiceCall  # noqa: F401
+from ._sessions import Session  # noqa: F401
 
 try:
     __version__ = _metadata.version(__package__)

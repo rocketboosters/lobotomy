@@ -1,3 +1,4 @@
+import dataclasses
 import json
 import pathlib
 import typing
@@ -9,6 +10,30 @@ from botocore.session import Session as BotocoreSession
 import lobotomy
 from lobotomy import _mutator
 from lobotomy import _services
+
+
+@dataclasses.dataclass(frozen=True)
+class ServiceCall:
+    """Data structure for recording service calls made on clients."""
+
+    #: Name of the service in which this call was made.
+    service: str
+    #: Name of the method within the specified service in which this call was made.
+    method: str
+    #: A normalized request dictionary that contains key/value pairs for each of
+    #: the arguments passed into the method call. This combines args and kwargs together
+    #: into a representative "kwargs" dictionary to avoid having to manually lookup
+    #: method arguments manually in a combined args/kwargs fashion.
+    request: typing.Dict[str, typing.Any]
+    #: Positional arguments specified in the service method call. These are also
+    #: available by keyword in the "request" attribute of this ServiceCall instance.
+    args: typing.Tuple[typing.Any, ...]
+    #: Keyword arguments specified in the service method call. These are also
+    #: available in the "request" attribute of this ServiceCall instance as well.
+    kwargs: typing.Dict[str, typing.Any]
+    #: The lobotomized response that was returned with this invocation as specified by
+    #: the loaded lobotomy data.
+    response: typing.Union[list, dict, str, None]
 
 
 class ReadOnlyCredentials(typing.NamedTuple):
@@ -139,6 +164,57 @@ class Lobotomy:
     ):
         self.data = data or {}
         self._client_overrides = client_overrides or {}
+        self._service_calls: typing.List[ServiceCall] = []
+
+    @property
+    def service_calls(self) -> typing.Tuple["ServiceCall", ...]:
+        """A list of the service calls that have been made so far."""
+        return tuple(self._service_calls)
+
+    def get_service_call(
+        self,
+        service_name: str,
+        method_name: str,
+        index: int = 0,
+    ) -> "ServiceCall":
+        """
+        Finds and returns the Nth service call made for the given method for inspection
+        and assertion during test evaluation as specified by the index.
+
+        :param service_name:
+            Name of the AWS boto3 service in which the method call being added resides.
+        :param method_name:
+            Name of the AWS boto3 method to be called for this response within the
+            specified service.
+        :param index:
+            Specifies the Nth service call made for the given service and method names
+            to be returned. This is a zero-indexed value.
+        :return:
+            Nth-specified service call for the given service and method names. If no
+            such call exists, an IndexError will be raised.
+        """
+        return self.get_service_calls(service_name, method_name)[index]
+
+    def get_service_calls(
+        self,
+        service_name: str,
+        method_name: str,
+    ) -> typing.List["ServiceCall"]:
+        """
+        Finds and returns a list containing all service calls made for the given method
+        for inspection and assertion during test evaluation.
+
+        :param service_name:
+            Name of the AWS boto3 service in which the method call being added resides.
+        :param method_name:
+            Name of the AWS boto3 method to be called for this response within the
+            specified service.
+        """
+        return [
+            s
+            for s in self._service_calls
+            if s.service == service_name and s.method == method_name
+        ]
 
     def add_client_override(self, service_name: str, client: typing.Any) -> "Lobotomy":
         """
@@ -231,7 +307,18 @@ class Lobotomy:
             return data.pop(0)
         return data
 
-    def get_response(self, service_name: str, method_name: str) -> typing.Any:
+    def record_call(self, service_call: "ServiceCall") -> None:
+        """
+        Records a service call made from a client in the list of overall service
+        calls for the lobotomized environment. This is meant to be called by
+        lobotomy.Clients only.
+
+        :param service_call:
+            Service call to record within the lobotomy instance.
+        """
+        self._service_calls.append(service_call)
+
+    def pop_response(self, service_name: str, method_name: str) -> typing.Any:
         """
         Retrieves the response data for the given service and method name
         combination from the lobotomy data. If such a response does not

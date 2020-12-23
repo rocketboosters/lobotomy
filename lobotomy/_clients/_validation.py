@@ -8,7 +8,7 @@ def validate_input(
     method: "_services.Method",
     request_args: typing.Iterable[typing.Any],
     request_kwargs: typing.Dict[str, typing.Any],
-) -> None:
+) -> typing.Dict[str, typing.Any]:
     """
     Compares the request made to its botocore definition to raise assertion
     errors if there are missing required arguments or if there are extraneous
@@ -24,6 +24,9 @@ def validate_input(
         Positional arguments made to the method call.
     :param request_kwargs:
         Keyword arguments made to the method call.
+    :return:
+        A dictionary containing the normalized request that combines args and kwargs
+        into a single request kwargs dictionary.
     """
     definition = method.input
     keys = list(definition["members"].keys())
@@ -53,3 +56,5 @@ def validate_input(
             {method.service.name}.{method.name}.
             """
         )
+
+    return request

@@ -85,8 +85,8 @@ def test_lobotomy(lobotomized: lobotomy.Lobotomy):
     response = s3_client.get_object(Bucket="foo", Key="bar")
 
     expected = b"The contents of my S3 file."
-    assert response['Body'].read() == expected, """
-        Expect the mocked response body data to be returned as a
+    assert response["Body"].read() == expected, """
+        Expected the mocked response body data to be returned as a
         StreamingBody object with blob/bytes contents. The lobotomy
         library introspects boto to properly convert the string body
         value in the configuration file into the expected return format
@@ -94,11 +94,21 @@ def test_lobotomy(lobotomized: lobotomy.Lobotomy):
         """
     
     expected = datetime.datetime(2020, 12, 1, 1, 2, 3, 0, datetime.timezone.utc)
-    assert response['LastModified'] == expected, """
-        Expect the mocked response last modified value to be a timezeon-aware
+    assert response["LastModified"] == expected, """
+        Expected the mocked response last modified value to be a timezone-aware
         datetime value generated from the string timestamp value in the
         configuration file to match how it would be returned by boto in
         an actual response.
+        """
+
+    call = lobotomized.get_service_call("s3", "get_object")
+    assert call.request["Bucket"] == "foo", """
+        Expected the s3.get_object method call arguments to have specified the bucket
+        as "foo".
+        """
+    assert call.request["Key"] == "bar", """
+        Expected the s3.get_object method call argumets to have specified the key as
+        "bar".
         """
 ```
 

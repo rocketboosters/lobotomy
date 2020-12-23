@@ -1,3 +1,5 @@
+import pytest
+
 import lobotomy
 
 
@@ -17,6 +19,27 @@ def test_creation_empty_patched(lob: lobotomy.Lobotomy):
     session = lob()
     client = session.client("sts")
     assert client.get_caller_identity()["Account"] == "123"
+    assert len(lob.service_calls) == 1
+    assert len(lob.get_service_calls("sts", "get_caller_identity")) == 1
+
+
+@lobotomy.Patch()
+def test_get_service_calls(lob: lobotomy.Lobotomy):
+    """Should correctly retrieve service calls made."""
+    lob.data = {"clients": {"sts": {"get_caller_identity": {"Account": "123"}}}}
+    session = lob()
+    client = session.client("sts")
+
+    assert client.get_caller_identity()["Account"] == "123"
+    assert client.get_caller_identity()["Account"] == "123", "Expected to work twice."
+
+    assert len(lob.service_calls) == 2
+    assert len(lob.get_service_calls("sts", "get_caller_identity")) == 2
+    assert lob.get_service_call("sts", "get_caller_identity", 0)
+    assert lob.get_service_call("sts", "get_caller_identity", 1)
+
+    with pytest.raises(IndexError):
+        lob.get_service_call("sts", "get_caller_identity", 2)
 
 
 @lobotomy.Patch()
