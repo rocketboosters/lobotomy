@@ -1,0 +1,13 @@
+{
+  "clients": {
+    "secretsmanager": {
+      "get_secret_value": {
+        "SecretString": "foo"
+      }
+    }
+  },
+  "ants": {
+    "foo": "bar",
+    "spam": "ham"
+  }
+}

@@ -1,0 +1,11 @@
+foo:
+  bar:
+    baz:
+      clients:
+        secretsmanager:
+          get_secret_value:
+            SecretString: foo
+
+ants: !does_not_exist.fake
+  foo: bar
+  spam: ham

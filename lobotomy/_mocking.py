@@ -1,6 +1,6 @@
 import pathlib
 import typing
-from unittest.mock import patch
+from unittest.mock import patch as mock_patch
 
 import lobotomy as lbm
 
@@ -51,6 +51,7 @@ class Patch:
         self.prefix = prefix
         self.patch_path = patch_path
         self.client_overrides = client_overrides
+        self._context_patch: typing.Any = None
 
     def _make_lobotomy(self) -> "lbm.Lobotomy":
         """
@@ -77,4 +78,18 @@ class Patch:
         Calls the patching decorator that wraps the test function with
         a patch of the boto3.Session class.
         """
-        return patch(self.patch_path, new_callable=self._make_lobotomy)(caller)
+        return mock_patch(self.patch_path, new_callable=self._make_lobotomy)(caller)
+
+    def __enter__(self):
+        """..."""
+        p = mock_patch(self.patch_path, new_callable=self._make_lobotomy)
+        self._context_patch = p
+        return p.__enter__()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self._context_patch is None:
+            return True
+        return self._context_patch.__exit__(exc_type, exc_val, exc_tb)
+
+
+patch = Patch

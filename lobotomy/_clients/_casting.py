@@ -232,6 +232,8 @@ def cast(definition: typing.Optional[dict], value: typing.Any) -> typing.Any:
     )
 
     try:
+        if isinstance(value, lobotomy.YamlModifier):
+            return caster(definition, value.to_response_data())
         return caster(definition, value)
     except Exception as error:
         raise lobotomy.DataTypeError(

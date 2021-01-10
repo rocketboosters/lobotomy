@@ -1,13 +1,11 @@
 import dataclasses
-import json
 import pathlib
 import typing
 
-import toml
-import yaml
 from botocore.session import Session as BotocoreSession
 
 import lobotomy
+from lobotomy import _fio
 from lobotomy import _mutator
 from lobotomy import _services
 
@@ -380,43 +378,4 @@ class Lobotomy:
             mocking clients in complex testing scenarios.
         """
         p = pathlib.Path(path)
-        contents = p.absolute().read_text()
-
-        if p.name.endswith((".yaml", ".yml")):
-            data = yaml.safe_load(contents)
-        elif p.name.endswith(".toml"):
-            data = toml.loads(contents)
-        else:
-            data = json.loads(contents)
-
-        return cls(data=_get_within(data, prefix), client_overrides=client_overrides)
-
-
-def _get_within(
-    data: dict,
-    prefix: typing.Union[None, str, typing.Iterable[str]],
-) -> dict:
-    """
-    Retrieves the lobotomy data within the root data object based on the given
-    prefix. If there is no prefix, the root data object is the lobotomy data and
-    that is returned instead.
-
-    :param data:
-        Loaded configuration data containing lobotomy data either at the top-level
-        or as a descendent within the data dictionary as specified by the prefix.
-    :param prefix:
-        Optional prefix that specifies where within the data dictionary to find the
-        lobotomized data. If not specified, the data dictionary is assumed to be a
-        lobotomy data configuration dictionary. If specified, the prefix can either
-        be represented as a hierarchical list of keys to descend within the root
-        data dictionary, e.g. ["foo", "bar"] or as a dot-delimited string denoting
-        the hierarchical list of keys, e.g. "foo.bar". If one of the keys contains
-        a "." then the list form must be used.
-    """
-    if not prefix:
-        return data
-
-    parts = prefix.split(".") if isinstance(prefix, str) else prefix
-    for key in parts:
-        data = data.get(key, {})
-    return data
+        return cls(data=_fio.read(p, prefix), client_overrides=client_overrides)

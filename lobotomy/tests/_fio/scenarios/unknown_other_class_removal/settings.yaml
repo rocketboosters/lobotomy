@@ -1,0 +1,3 @@
+actions:
+- kind: remove_service
+  service: secretsmanager

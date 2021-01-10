@@ -1,0 +1,9 @@
+clients:
+  secretsmanager:
+    get_secret_value:
+      SecretString: foo
+
+
+other: !fake_class_that_does_not_exist
+  foo: bar
+  spam: ham

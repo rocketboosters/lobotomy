@@ -1,0 +1,13 @@
+foo:
+  bar:
+    baz:
+      clients:
+        s3:
+          put_object: {}
+        secretsmanager:
+          get_secret_value:
+            SecretString: foo
+
+ants: !does_not_exist.fake
+  foo: bar
+  spam: ham

@@ -1,0 +1,6 @@
+[ants]
+foo = "bar"
+spam = "ham"
+
+[clients.secretsmanager.get_secret_value]
+SecretString = "foo"

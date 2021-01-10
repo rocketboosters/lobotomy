@@ -13,6 +13,9 @@
 - [Usage](#usage)
     - [Configuration Files](#configuration-files)
     - [Test Patching](#test-patching)
+    - [YAML IO Modifiers](#yaml-io-modifiers)
+      - [!lobotomy.to_json](#to_json)
+      - [!lobotomy.inject_string](#inject_string)
     - [Command Line Interface](#command-line-interface)
 - [Advanced Usage](#advanced-usage)
     - [Key Prefixes](#key-prefixes)
@@ -67,12 +70,12 @@ import datetime
 
 my_directory = pathlib.Path(__file__).parent
 
-@lobotomy.Patch(my_directory.joinpath("test_lobotomy.yaml"))
+@lobotomy.patch(my_directory.joinpath("test_lobotomy.yaml"))
 def test_lobotomy(lobotomized: lobotomy.Lobotomy):
     """
     Should return the mocked get_object response generated from the
     configuration data specified in the lobotomy patch above. By default
-    the Patch(...) applies to the boto3.Session object, so calling 
+    the patch(...) applies to the boto3.Session object, so calling 
     boto3.Session() will create a lobotomy.Session instead of a normal
     boto3.Session. From there the low-level client interface is designed
     to match normal usage.
@@ -165,7 +168,7 @@ the actual code.
 ## Test Patching
 
 Once the configuration file has been specified, it is used within a test
-via a `lobotomy.Patch` as shown below.
+via a `lobotomy.patch` as shown below.
 
 ```python
 import lobotomy
@@ -175,12 +178,12 @@ import datetime
 
 my_directory = pathlib.Path(__file__).parent
 
-@lobotomy.Patch(my_directory.joinpath("test_lobotomy.yaml"))
+@lobotomy.patch(my_directory.joinpath("test_lobotomy.yaml"))
 def test_lobotomy(lobotomized: lobotomy.Lobotomy):
     """
     Should return the mocked get_object response generated from the
     configuration data specified in the lobotomy patch above. By default
-    the Patch(...) applies to the boto3.Session object, so calling 
+    the patch(...) applies to the boto3.Session object, so calling 
     boto3.Session() will create a lobotomy.Session instead of a normal
     boto3.Session. From there the low-level client interface is designed
     to match normal usage.
@@ -243,7 +246,7 @@ configuration = {
 }
 
 
-@lobotomy.Patch(data=configuration)
+@lobotomy.patch(data=configuration)
 def test_lobotomy(lobotomized: lobotomy.Lobotomy):
     """..."""
 ```
@@ -259,7 +262,7 @@ to register calls and responses.
 import lobotomy
 
 
-@lobotomy.Patch()
+@lobotomy.patch()
 def test_lobotomy(lobotomized: lobotomy.Lobotomy):
     """..."""
     lobotomized.add_call(
@@ -280,13 +283,90 @@ def test_lobotomy(lobotomized: lobotomy.Lobotomy):
     )
 ```
 
-In the case above no data or path was supplied to the `lobotomy.Patch()` and instead
+In the case above no data or path was supplied to the `lobotomy.patch()` and instead
 call responses were registered within the test function itself. The response argument
 in the `Lobotomy.add_call()` method is optional. If omitted, a default one will be
 created instead in the same fashion as one would be created via the CLI (see below).
 
 Note that it is also possible to mix loading data and adding calls within the test
 function.
+
+## YAML IO Modifiers
+
+When using YAML files, lobotomy comes with custom YAML classes that can provide
+even more flexibility and ease in defining data. The following are the available
+modifiers and how to use them:
+
+### to_json
+
+This modifier will convert YAML data into a JSON string in the creation of the
+response, which makes it easier to represent complex JSON data in the scenario
+data.
+
+```yaml
+clients:
+  secretsmanager:
+    get_secret_value:
+      SecretString: !lobotomy.to_json
+        first: first_value
+        second: second_value
+```
+
+In this example the `!lobotomy.to_json` YAML modifier instructs the lobotomy to
+converts the object data beneath the `SecretString` attribute into a JSON string
+as part of the response object. In this case then in the associated Python test:
+
+```python
+import boto3
+import lobotomy
+import json
+
+
+@lobotomy.patch(path="scenario.yaml")
+def test_showing_to_json(lobotomized: lobotomy.Lobotomy):
+    """Should expect a JSON string for the 'SecretString' value."""
+    client = boto3.Session().client("secretsmanager")
+
+    response = client.get_secret_value(SecretId="fake")
+    
+    expected = {"first": "first_value", "second": "second_value"}
+    assert expected == json.loads(response["SecretValue"])
+```
+
+the value is returned as the expected JSON string.
+
+### inject_string
+
+This modifier is used to inject the string contents of another file into the value
+of the associated attribute.
+
+```yaml
+clients:
+  s3:
+    get_object:
+      Body: !lobotomy.inject_string './body.txt'
+```
+
+Here the `!lobotomy.inject_string` YAML modifier instructs lobotomy to load the
+contents of the external file `./body.txt` into the `Body` attribute value where
+the external file path is defined relative to the defining YAML file.
+
+So in this case, if there's a `body.txt` file with the contents `Hello lobotomy!`,
+the Python test would find this in reading the body:
+
+```python
+import boto3
+import lobotomy
+import json
+
+
+@lobotomy.patch(path="scenario.yaml")
+def test_showing_inject_string(lobotomized: lobotomy.Lobotomy):
+    """Should expect the body.txt to be injected into the Body response attribute."""
+    client = boto3.Session().client("s3")
+    response = client.get_object(Bucket="fake", Key="fake")
+    assert response["Body"].read() == b"Hello lobotomy!"
+```
 
 ## Command Line Interface
 
@@ -502,7 +582,7 @@ lobotomy:
 ```
 
 In this case the prefixes are `lobotomy.test_a` and `lobotomy.test_b`.
-To use these in a test the *prefix* must be specified in the Patch:
+To use these in a test the *prefix* must be specified in the patch:
 
 ```python
 import pathlib
@@ -511,12 +591,12 @@ import lobotomy
 config_path = pathlib.Path(__file__).parent.joinpath("validation.yaml")
 
 
-@lobotomy.Patch(config_path, prefix="lobotomy.test_a")
+@lobotomy.patch(config_path, prefix="lobotomy.test_a")
 def test_a(lobotomized: lobotomy.Lobotomy):
     """..."""
 
 
-@lobotomy.Patch(config_path, prefix="lobotomy.test_b")
+@lobotomy.patch(config_path, prefix="lobotomy.test_b")
 def test_b(lobotomized: lobotomy.Lobotomy):
     """..."""
 ```
@@ -538,7 +618,7 @@ import lobotomy
 config_path = pathlib.Path(__file__).parent.joinpath("test.yaml")
 
 
-@lobotomy.Patch(config_path, patch_path="something.else.Session")
+@lobotomy.patch(config_path, patch_path="something.else.Session")
 def test_another_patch_path(lobotomized: lobotomy.Lobotomy):
     """..."""
 ```
@@ -582,7 +662,7 @@ from unittest.mock import MagicMock
 import lobotomy
 
 
-@lobotomy.Patch()
+@lobotomy.patch()
 def test_example(lobotomized: lobotomy.Lobotomy):
     """Should do something..."""
     mock_dynamo_db_client = MagicMock()
@@ -604,7 +684,7 @@ import pytest
 import lobotomy
 
 
-@lobotomy.Patch()
+@lobotomy.patch()
 def test_client_errors(lobotomized: lobotomy.Lobotomy):
     """Should raise the specified error."""
     lobotomized.add_call(
@@ -630,7 +710,7 @@ import pytest
 import lobotomy
 
 
-@lobotomy.Patch()
+@lobotomy.patch()
 def test_client_errors(lobotomized: lobotomy.Lobotomy):
     """Should raise the specified error."""
     lobotomized.add_call(

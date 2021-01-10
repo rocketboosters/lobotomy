@@ -1,0 +1,6 @@
+clients:
+  secretsmanager:
+    get_secret_value:
+      SecretString: !lobotomy.to_json
+        foo: bar
+        spam: 42

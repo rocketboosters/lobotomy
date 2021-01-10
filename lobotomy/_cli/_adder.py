@@ -48,7 +48,7 @@ def run(context: "_definitions.CliContext") -> "_definitions.ExecutionResult":
     elif file_format == "toml":
         print(toml.dumps(configs))
     else:
-        print(yaml.safe_dump(configs))
+        print(yaml.dump(configs))
 
     return _definitions.ExecutionResult(
         code="ECHOED", message="New call has been echoed to stdout."

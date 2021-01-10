@@ -1,0 +1,7 @@
+lobotomy_prefix: foo.bar.baz
+
+actions:
+- kind: add_service_call
+  service: s3
+  method: put_object
+  response: {}

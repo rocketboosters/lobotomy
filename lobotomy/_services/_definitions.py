@@ -174,7 +174,7 @@ def _get_specification(service_name: str) -> dict:
     package = f"{__package__}._augmentations"
     resource_name = f"{service_name}.yaml"
     if importlib.resources.is_resource(package, resource_name):
-        extras = yaml.safe_load(importlib.resources.read_text(package, resource_name))
+        extras = yaml.full_load(importlib.resources.read_text(package, resource_name))
 
         for key, value in (extras.get("operations") or {}).items():
             spec["operations"][key] = value

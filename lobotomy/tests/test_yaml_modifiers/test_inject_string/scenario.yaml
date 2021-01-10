@@ -1,0 +1,4 @@
+clients:
+  s3:
+    get_object:
+      Body: !lobotomy.inject_string 'body.txt'
