@@ -3,6 +3,7 @@ import functools
 import typing
 from unittest.mock import MagicMock
 
+from botocore.client import ClientMeta
 from botocore.config import Config
 
 import lobotomy
@@ -50,6 +51,14 @@ class Client:
         )
         self._session = session
 
+        self.meta = ClientMeta(
+            events=MagicMock(),
+            client_config=config,
+            endpoint_url=endpoint_url,
+            service_model=MagicMock(),
+            method_to_api_mapping={},
+            partition="aws",
+        )
         self.exceptions = MagicMock()
         self._registered_exceptions = {}
         for name in self._service.exceptions:
