@@ -1,6 +1,7 @@
 import dataclasses
 import pathlib
 import typing
+from unittest.mock import MagicMock
 
 from botocore.session import Session as BotocoreSession
 
@@ -94,6 +95,7 @@ class Session:
         source_lobotomy: "Lobotomy" = None,
     ):
         self.lobotomy: Lobotomy = source_lobotomy or Lobotomy()
+        self.events = MagicMock()
 
         self._constructed = {
             "aws_access_key_id": aws_access_key_id,
