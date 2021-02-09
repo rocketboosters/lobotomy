@@ -3,7 +3,7 @@ import datetime
 import typing
 
 
-def parse_definition_item(shapes: dict, value: dict) -> dict:
+def parse_definition_item(shapes: dict, value: dict, max_depth: int = 10) -> dict:
     """
     Unwraps the value object by placing its shape data within a copy of
     the object itself and returning that copied object. This works
@@ -24,26 +24,33 @@ def parse_definition_item(shapes: dict, value: dict) -> dict:
         represents a list or dictionary.
     """
     output = copy.deepcopy(value)
+    depth = max_depth - 1
+    if depth < 0:
+        # In cases where recursion is a problem, force an exit and set the
+        # deep-value type to "any" to allow for any kind of validation.
+        if "type" not in output:
+            output["type"] = "any"
+        return output
 
     if value.get("type") == "map":
         # Maps are terminal but have key and value shapes.
-        output["key"] = parse_definition_item(shapes, value["key"])
-        output["value"] = parse_definition_item(shapes, value["value"])
+        output["key"] = parse_definition_item(shapes, value["key"], depth)
+        output["value"] = parse_definition_item(shapes, value["value"], depth)
 
     if "member" in output:
         # Types like lists have a member definition for the items in the
         # list. That needs to be parsed and then the shape is complete.
-        output["member"] = parse_definition_item(shapes, output["member"])
+        output["member"] = parse_definition_item(shapes, output["member"], depth)
 
     if "members" in output:
         output["members"] = {
-            k: parse_definition_item(shapes, v)
+            k: parse_definition_item(shapes, v, depth)
             for k, v in (output["members"] or {}).items()
         }
 
     if "shape" in output:
         shape = copy.deepcopy(shapes[output["shape"]])
-        output.update(parse_definition_item(shapes, shape))
+        output.update(parse_definition_item(shapes, shape, depth))
 
     return output
 

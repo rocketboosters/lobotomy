@@ -7,7 +7,7 @@ import typing
 import botocore
 import yaml
 
-from lobotomy._services import _formating
+from lobotomy._services import _formatting
 
 
 @dataclasses.dataclass(frozen=True)
@@ -50,7 +50,7 @@ class Method(DataWrapper):
     @property
     def input(self) -> dict:
         """Definition for the input signature of this method."""
-        return _formating.parse_definition_item(
+        return _formatting.parse_definition_item(
             self.service.shapes,
             self.get("input") or {},
         )
@@ -58,7 +58,7 @@ class Method(DataWrapper):
     @property
     def output(self) -> dict:
         """Definition for the output/response signature of this method."""
-        return _formating.parse_definition_item(
+        return _formatting.parse_definition_item(
             self.service.shapes,
             self.get("output") or {},
         )
@@ -69,7 +69,7 @@ class Method(DataWrapper):
         A configuration representation of the method output for
         use in lobotomy service method configurations.
         """
-        return _formating.flat_cast(self.output)
+        return _formatting.flat_cast(self.output)
 
 
 @dataclasses.dataclass(frozen=True)
