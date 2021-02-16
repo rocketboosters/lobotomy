@@ -1,0 +1,10 @@
+operations: {}
+
+shapes:
+  Blob:
+    # lambda.invoke["Payload"] is listed as a "Blob" shape, which doesn't have a
+    # streaming flag. However, the documentation and invocations return a
+    # StreamingBody object. So here we overwrite that shape and set streaming = true.
+    type: blob
+    streaming: true
+    sensitive: true
