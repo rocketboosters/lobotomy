@@ -48,7 +48,7 @@ lobotomy = 'lobotomy:run_cli'
 [tool.taskipy.tasks]
 # https://github.com/illBeRoy/taskipy
 black = "black ."
-mypy = "poetry run mypy ./lobotomy/ --ignore-missing-imports"
+mypy = "poetry run mypy . --install-types --non-interactive --ignore-missing-imports"
 flake8 = "flake8 ."
 test = "pytest . --cov-report=term-missing --cov=."
 lint = "task black && task flake8 && task mypy"

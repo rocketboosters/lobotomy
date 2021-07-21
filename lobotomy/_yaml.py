@@ -23,7 +23,7 @@ class YamlModifier:
     @classmethod
     def _from_yaml(cls, loader: yaml.Loader, node: yaml.Node) -> "YamlModifier":
         """Internal yaml node parsing. Defaults to a scalar value."""
-        value = loader.construct_scalar(node)
+        value = loader.construct_scalar(typing.cast(yaml.ScalarNode, node))
         return cls(value)
 
     @classmethod
@@ -82,7 +82,8 @@ class InjectString(YamlModifier):
     @classmethod
     def _from_yaml(cls, loader: yaml.Loader, node: yaml.Node) -> "InjectString":
         """Internal yaml node parsing. Defaults to a scalar value."""
-        value = json.loads(loader.construct_scalar(node).strip("\"'"))
+        raw = loader.construct_scalar(typing.cast(yaml.ScalarNode, node))
+        value = json.loads(typing.cast(str, raw).strip("\"'"))
         return cls(value)
 
     @classmethod
