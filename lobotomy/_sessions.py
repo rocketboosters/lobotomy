@@ -11,6 +11,15 @@ from lobotomy import _mutator
 from lobotomy import _services
 
 
+def _get_key(
+    source: typing.Optional[dict],
+    key: typing.Any,
+    default: typing.Any = None,
+) -> typing.Any:
+    """Fetch the value of the key in the source or the default if not present."""
+    return (source or {}).get(key, default)
+
+
 @dataclasses.dataclass(frozen=True)
 class ServiceCall:
     """Data structure for recording service calls made on clients."""
@@ -318,7 +327,12 @@ class Lobotomy:
         """
         self._service_calls.append(service_call)
 
-    def pop_response(self, service_name: str, method_name: str) -> typing.Any:
+    def pop_response(
+        self,
+        service_name: str,
+        method_name: str,
+        arguments: typing.Dict[str, typing.Any] = None,
+    ) -> typing.Any:
         """
         Retrieves the response data for the given service and method name
         combination from the lobotomy data. If such a response does not
@@ -328,6 +342,9 @@ class Lobotomy:
             Name of the boto3 service in which the method call lookup is being made.
         :param method_name:
             Name of the method within the boto3 service for which to lookup a response.
+        :param arguments:
+            The arguments supplied to the lobotomized request, which are needed when
+            the call data is a callable object.
         :return:
             A response object containing the lobotomized response for the given
             service method call.
@@ -352,7 +369,13 @@ class Lobotomy:
                     responses have been returned already.
                     """
                 )
-            return response.pop(0)
+            response = response.pop(0)
+
+        if callable(response):
+            args = _get_key(arguments, "args") or tuple()
+            kwargs = _get_key(arguments, "kwargs") or {}
+            return response(*args, **kwargs)
+
         return response
 
     @classmethod

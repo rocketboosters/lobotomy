@@ -23,6 +23,7 @@
     - [Session Configuration](#session-configuration)
     - [Client Overrides](#client-overrides)
     - [Error Handling](#error-handling)
+    - [Callable Responses](#callable-responses)
 
 The *lo&#8226;**boto**&#8226;my* library allows one to mock the low-level boto3
 client libraries efficiently, especially in more complex scenario testing 
@@ -727,3 +728,39 @@ def test_client_errors(lobotomized: lobotomy.Lobotomy):
 
     assert exception_info.value.response["Error"]["Code"] == "NoSuchBucket"
 ```
+
+## Callable Responses
+
+For more advanced cases it is also possible to use any callable as the source for
+generating the response. For example, if I want the response to be different based
+on the arguments specified when making the call, I can create a function to return
+a result that reflects the inputs.
+
+```python
+import typing
+
+import boto3
+
+import lobotomy
+
+
+def _respond(*args, **kwargs) -> typing.Dict[str, typing.Any]:
+    return {
+        "Body": "{}.{}".format(kwargs["Bucket"], kwargs["Key"]).encode()
+    }
+
+
+@lobotomy.patch()
+def test_callable_responses(lobotomized: "lobotomy.Lobotomy"):
+    """Should return the expected body value from the callable response."""
+    lobotomized.add_call("s3", "get_object", _respond)
+
+    session = boto3.Session()
+    client = session.client("s3")
+
+    response = client.get_object(Bucket="foo", Key="bar")
+    assert response["Body"].read() == b"foo.bar"
+```
+
+Any callable is supported as long as it accepts the `*args, **kwargs` appropriate to
+the calling client service request.

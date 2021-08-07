@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "lobotomy"
-version = "0.3.5"
+version = "0.3.6"
 license = "MIT"
 description = "Boto3 low-level client mocking library."
 authors = ["Scott Ernst <swernst@gmail.com>"]

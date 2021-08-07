@@ -70,6 +70,7 @@ class Client:
         raw = self._session.lobotomy.pop_response(
             self._service_name,
             called_method_name,
+            arguments={"args": args, "kwargs": kwargs},
         )
         method = self._service.lookup(called_method_name)
         request = _validation.validate_input(method, args, kwargs)
