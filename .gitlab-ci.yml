@@ -101,8 +101,6 @@ build-library:
   stage: build
   script:
   - pip install poetry
-  - poetry install -E shell
-  - poetry run python docs_builder.py
   - poetry build
   artifacts:
     paths:
