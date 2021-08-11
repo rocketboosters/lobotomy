@@ -13,8 +13,9 @@ from lobotomy._services import _formatting
 @dataclasses.dataclass(frozen=True)
 class DataWrapper:
     """
-    Data structure class containing a data object and a get method
-    that allows for hierarchical, optional-chaining lookup of keys
+    Data structure class containing a data object with nested lookup.
+
+    The get method allows for hierarchical, optional-chaining lookup of keys
     within the data object.
     """
 
@@ -22,11 +23,12 @@ class DataWrapper:
 
     def get(self, *args: str, default: typing.Any = None) -> typing.Any:
         """
-        Fetches the value from the spec dictionary, allowing for nested
-        key lookups by specifying multiple key args. If the key is not
-        found in the spec dictionary, the default value will be returned
-        instead. However, if a falsy value is found for the key, including
-        None, that will be returned instead.
+        Fetch the value from the spec dictionary.
+
+        This method allows for nested key lookups by specifying multiple key args. If
+        the key is not found in the spec dictionary, the default value will be returned
+        instead. However, if a falsy value is found for the key, including None, that
+        will be returned instead.
         """
         value = self.data or {}
         for k in args:
@@ -49,7 +51,7 @@ class Method(DataWrapper):
 
     @property
     def input(self) -> dict:
-        """Definition for the input signature of this method."""
+        """Fetch definition for the input signature of this method."""
         return _formatting.parse_definition_item(
             self.service.shapes,
             self.get("input") or {},
@@ -57,7 +59,7 @@ class Method(DataWrapper):
 
     @property
     def output(self) -> dict:
-        """Definition for the output/response signature of this method."""
+        """Fetch definition for the output/response signature of this method."""
         return _formatting.parse_definition_item(
             self.service.shapes,
             self.get("output") or {},
@@ -66,8 +68,9 @@ class Method(DataWrapper):
     @property
     def configuration_output(self) -> typing.Any:
         """
-        A configuration representation of the method output for
-        use in lobotomy service method configurations.
+        Fetch a configuration representation of the method output.
+
+        This is used in lobotomy service method configurations.
         """
         return _formatting.flat_cast(self.output)
 
@@ -75,8 +78,9 @@ class Method(DataWrapper):
 @dataclasses.dataclass(frozen=True)
 class Service(DataWrapper):
     """
-    Botocore service definition for the specified service with accessors
-    and added functionality for use in lobotomy mocking situations.
+    Botocore service definition for the specified service with accessors.
+
+    Adds functionality for use in lobotomy mocking situations.
     """
 
     #: Name of the service for the associated specification.
@@ -88,27 +92,29 @@ class Service(DataWrapper):
     exceptions: dict = dataclasses.field(init=False, default_factory=lambda: {})
 
     def __post_init__(self):
-        """Loads the service specification into the object."""
+        """Load the service specification into the object."""
         self.data.update(_get_specification(self.name))
         self.exceptions.update(_get_exceptions(self.data))
 
     @property
     def version(self) -> str:
-        """Version of the service specification."""
+        """Fetch the version of the service specification."""
         return self.get("version", "1.0")
 
     @property
     def metadata(self) -> dict:
         """
-        Metadata associated with the service as defined in the botocore
-        specification.
+        Fetch metadata associated with the service.
+
+        This data is defined in the botocore specification.
         """
         return self.get("metadata") or {}
 
     @property
     def operations(self) -> dict:
         """
-        A dictionary that maps client methods to their specifications.
+        Fetch a dictionary that maps client methods to their specifications.
+
         The method keys are all lowercase format, so it's best to use
         the Service.lookup(method_name) to retrieve the values for
         snake_case definitions.
@@ -118,13 +124,14 @@ class Service(DataWrapper):
     @property
     def shapes(self) -> dict:
         """
-        Shape definitions from the service specification that define the
-        input, output and exception type objects and their arguments.
+        Fetch the shape definitions from the service specification.
+
+        This defines the input, output and exception type objects and their arguments.
         """
         return self.get("shapes") or {}
 
     def has(self, method_name: str) -> bool:
-        """Determines whether or not the spec defines the given method."""
+        """Determine whether the spec defines the given method."""
         value = method_name.lower().replace("_", "")
         return value in self.operations
 
@@ -140,8 +147,9 @@ class Service(DataWrapper):
 
 def _get_specification(service_name: str) -> dict:
     """
-    Loads the service specification data for the given service name from
-    the installed botocore library.
+    Load the service specification data for the given service name.
+
+    This data is loaded from the installed botocore library for maximum compatibility.
 
     :param service_name:
         Name of the service to load, which corresponds with the name that
@@ -188,9 +196,10 @@ def _get_specification(service_name: str) -> dict:
 
 def _get_exceptions(specification: dict) -> typing.Dict[str, dict]:
     """
-    Assembles a mapping of client exceptions raised by the methods in
-    the specified service specification where the values are the shape
-    mappings for those exceptions as specified in the service specification.
+    Assemble a mapping of client exceptions raised by the methods.
+
+    These are extracted from the specified service specification where the values are
+    the shape mappings for those exceptions as specified in the service specification.
 
     :param specification:
         Botocore service specification from which to extract exception

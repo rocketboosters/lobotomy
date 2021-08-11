@@ -76,3 +76,15 @@ def test_client_errors(lobotomized: lobotomy.Lobotomy):
         client.list_objects(Bucket="foo")
 
     assert exception_info.value.response["Error"]["Code"] == "NoSuchBucket"
+
+
+@lobotomy.patch()
+def test_client_error_convenience(lobotomized: lobotomy.Lobotomy):
+    """Should create an error response."""
+    lobotomized.add_error_call("s3", "list_objects", "NoSuchBucket", "Hello...")
+    client = lobotomized().client("s3")
+
+    session = boto3.Session()
+    client = session.client("s3")
+    with pytest.raises(client.exceptions.NoSuchBucket):
+        client.list_objects(Bucket="foo")

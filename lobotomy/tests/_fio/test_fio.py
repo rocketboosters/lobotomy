@@ -65,8 +65,11 @@ def test_fio(write_text: MagicMock, folder: str):
             _process_action(lobotomized, action)
         _fio.write(scenario_path, lobotomized.data, prefix=prefix)
 
-    expected = _get_path(d, "expected").read_text().strip()
-    observed: str = write_text.call_args.args[0].strip()
+    # Load expected and remove comments.
+    lines = _get_path(d, "expected").read_text().strip().replace("\r", "").split("\n")
+    expected = "\n".join([line for line in lines if not line.lstrip().startswith("#")])
+
+    observed: str = write_text.call_args.args[0].strip().replace("\r", "")
     difference = "\n".join(
         difflib.unified_diff(
             expected.split("\n"),

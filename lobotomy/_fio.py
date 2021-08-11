@@ -15,7 +15,7 @@ _path_regex = re.compile(r"!lobotomy.inject_(?P<kind>[^\s]+)\s+(?P<path>[^\s\n]+
 
 @dataclasses.dataclass(frozen=True)
 class YamlBlock:
-    """Data structure for extracted YAML blocks"""
+    """Data structure for extracted YAML blocks."""
 
     #: Key within the larger context of the YAML data that this block data is
     #: associated with. The root YAML block should have an empty string for a key.
@@ -35,16 +35,19 @@ class YamlBlock:
     @property
     def key_index(self) -> int:
         """
-        Index of the line where the key resides, which will be one less than the
-        index where the body starts, unless the body starts at 0 because this is
-        the root block.
+        Get index of the line where the key resides.
+
+        This will be one less than the index where the body starts, unless the body
+        starts at 0 because this is the root block.
         """
         return max(0, self.start_index - 1)
 
     @property
     def outer_body(self) -> str:
         """
-        Body and the key line together instead of the body, which contains only
+        Fetch the body and the key line together.
+
+        This pulls both instead of just the body. which contains only
         the inner contents of the key.
         """
         if not self.key:
@@ -55,8 +58,9 @@ class YamlBlock:
 
 def _get_block(key: str, block: YamlBlock) -> YamlBlock:
     """
-    Retrieves the block within the specified argument block's body for the specified
-    key. The body of a block has no key header line as the body is the string
+    Retrieve the block within the specified argument block's body for the specified key.
+
+    The body of a block has no key header line as the body is the string
     representation of the contents within the given block. Therefore, they search
     key, if present in the block, will be a top-level key in the block.
 
@@ -98,8 +102,9 @@ def _extract(
     prefix: typing.Iterable[str],
 ) -> typing.Tuple[YamlBlock, YamlBlock, YamlBlock]:
     """
-    Extracts the lobotomy sessions and clients blocks from the overall yaml block and
-    returns them along with the lobotomy key-prefix yaml block in which the clients
+    Extract the lobotomy sessions and clients blocks from the overall yaml block.
+
+    This returns them along with the lobotomy key-prefix yaml block in which the clients
     and sessions blocks were found.
 
     :param contents:
@@ -125,6 +130,8 @@ def _get_prefix(
     prefix: typing.Union[None, str, typing.Iterable[str]],
 ) -> typing.Iterable[str]:
     """
+    Fetch the optional prefix keys defining where the lobotomy data will be nested.
+
     Optional prefix that specifies where within the data dictionary to find the
     lobotomized data. If not specified, the data dictionary is assumed to be a
     lobotomy data configuration dictionary. If specified, the prefix can either
@@ -141,7 +148,7 @@ def _get_prefix(
 
 def _normalize_yaml(contents: str, directory: pathlib.Path) -> str:
     """
-    Normalizes Yaml class configuration for advanced loading functionality.
+    Normalize Yaml class configuration for advanced loading functionality.
 
     :param contents:
         String contents of a YAML file to be parsed.
@@ -167,11 +174,12 @@ def _read_yaml(
     directory: pathlib.Path,
 ) -> dict:
     """
-    Reads a YAML file into lobotomy data. First it tries to read the entire file,
-    but if that does not work it falls back to extracting the lobotomy data from
-    the file and then loading only that portion of the file. This is useful when
-    YAML classes are used within the file that may not be loaded at the time of
-    the file read process.
+    Read a YAML file into lobotomy data.
+
+    First it tries to read the entire file, but if that does not work it falls back to
+    extracting the lobotomy data from the file and then loading only that portion of
+    the file. This is useful when YAML classes are used within the file that may not be
+    loaded at the time of the file read process.
 
     :param contents:
         YAML string contents from which to extract lobotomy data.
@@ -204,7 +212,7 @@ def _read_file_data(
     path: pathlib.Path,
     file_format: typing.Optional[str],
 ) -> dict:
-    """..."""
+    """Read existing data from the source file with the given format."""
     contents = path.read_text()
 
     if file_format == "yaml" or path.name.endswith((".yaml", ".yml")):
@@ -222,7 +230,7 @@ def _read_file(
     prefix: typing.Iterable[str],
 ) -> dict:
     """
-    Reads the configuration file from disk if it exists.
+    Read the configuration file from disk if it exists.
 
     :param path:
         Location of the file to read.
@@ -254,9 +262,9 @@ def read(
     file_format: str = None,
 ) -> typing.Dict[str, typing.Any]:
     """
-    Reads the specified configuration file and returns the result. If a
-    prefix is specified, the data at the given prefix will be returned
-    instead.
+    Read the specified configuration file and returns the result.
+
+    If a prefix is specified, the data at the given prefix will be returned instead.
 
     :param path:
         Path to the configuration file to read.
@@ -280,8 +288,9 @@ def _update_yaml_write_lines(
     parent: YamlBlock,
 ) -> typing.List[str]:
     """
-    Replaces the specified block within the YAML file lines object with the new
-    configs body by dumping that body and replacing it within the returned list
+    Replace the specified block within the YAML file lines object with the new configs.
+
+    This is done by dumping that configs body and replacing it within the returned list
     of lines.
 
     :param lines:
@@ -332,8 +341,9 @@ def _write_modified_yaml(
     prefix: typing.Iterable[str],
 ) -> None:
     """
-    Writes the updated lobotomy data configs to an existing YAML file without loading
-    the entire file to prevent issues with YAML classes.
+    Write the updated lobotomy data configs to an existing YAML file.
+
+    This is done without loading the entire file to prevent issues with YAML classes.
 
     :param path:
         Path where the lobotomy data will be written.
@@ -361,6 +371,53 @@ def _write_modified_yaml(
     path.write_text(body)
 
 
+def _get_data_for_write(
+    path: pathlib.Path,
+    file_format: str,
+    prefix_keys: typing.Iterable[str],
+) -> typing.Tuple[typing.Dict[str, typing.Any], typing.Dict[str, typing.Any]]:
+    """
+    Retrieve the data from the file if it exists or create a new data object if not.
+
+    :param path:
+        Location of the source file to load data from if it already exists.
+    :param file_format:
+        Specifies the format of the file to read.
+    :param prefix_keys:
+        A list of keys within the root data object where the lobotomy data should be
+        written. If the iterable is empty, the lobotomy data will be written at the
+        root level.
+    :return:
+        A tuple containing the root data object and the parent data object for the
+        lobotomy write insertions. If there are no prefix keys specified, the root
+        and the parent will be the same. Otherwise, the parent will be a nested child
+        of the root at the location specified by the prefix keys.
+    """
+    if path.exists():
+        root = _read_file_data(path, file_format)
+    else:
+        root = {}
+
+    parent = root
+    for key in prefix_keys or []:
+        if key not in parent:
+            parent[key] = {}
+        parent = parent[key]
+
+    return root, parent
+
+
+def _get_file_format_id(path: pathlib.Path, file_format: typing.Optional[str]) -> str:
+    """Determine the file format for writing based on the arguments."""
+    formats = {
+        "yaml": path.name.endswith((".yml", ".yaml")),
+        "toml": path.name.endswith(".toml"),
+        "json": path.name.endswith(".json"),
+    }
+    finder = (k for k, v in formats.items() if file_format == k or v)
+    return next(finder, "json")
+
+
 def write(
     path: typing.Union[str, pathlib.Path],
     configs: typing.Dict[str, typing.Any],
@@ -368,7 +425,8 @@ def write(
     file_format: str = None,
 ) -> None:
     """
-    Writes the specified configuration file with updated configuration data.
+    Write the specified configuration file with updated configuration data.
+
     If a prefix is specified, the data will be inserted at the given prefix.
 
     :param path:
@@ -392,29 +450,20 @@ def write(
     # Make sure the configs are clean of everything but the expected lobotomy keys.
     source = {k: v for k, v in configs.items() if k in ("clients", "sessions")}
 
-    is_yaml = file_format == "yaml" or p.name.endswith((".yml", ".yaml"))
-    if p.exists() and is_yaml:
+    format_id = _get_file_format_id(p, file_format)
+
+    if p.exists() and format_id == "yaml":
         _write_modified_yaml(p, source, prefix_keys)
         return
 
-    if p.exists():
-        data = _read_file_data(p, file_format)
-    else:
-        data = {}
+    data, parent = _get_data_for_write(p, format_id, prefix_keys)
+    parent.update(source)
 
-    child = data
-    for key in prefix_keys or []:
-        if key not in child:
-            child[key] = {}
-        child = child[key]
+    writers = {
+        "yaml": lambda: yaml.dump(data),
+        "toml": lambda: toml.dumps(data),
+        "json": lambda: json.dumps(data, indent=2),
+    }
 
-    child.update(source)
-
-    if file_format == "yaml" or p.name.endswith((".yml", ".yaml")):
-        contents = yaml.dump(data)
-    elif file_format == "toml" or p.name.endswith(".toml"):
-        contents = toml.dumps(data)
-    else:
-        contents = json.dumps(data, indent=2)
-
+    contents = writers[format_id]()
     p.write_text(contents)

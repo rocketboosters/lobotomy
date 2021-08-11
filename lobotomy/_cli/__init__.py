@@ -7,8 +7,9 @@ from lobotomy._cli import _parsing
 
 def run(arguments: typing.List[str] = None) -> "_definitions.ExecutionResult":
     """
-    Executes a cli command with the given arguments, or sys.argv if no
-    explicit arguments were specified.
+    Execute a cli command with the given arguments.
+
+    Defaults to sys.argv if no explicit arguments were specified.
     """
     args = _parsing.parse(arguments)
     context = _definitions.CliContext(args)

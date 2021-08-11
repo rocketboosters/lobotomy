@@ -1,3 +1,4 @@
+"""Lobotomy library used for mocking boto session/client behaviors for testing."""
 import pathlib as _pathlib
 from importlib import metadata as _metadata
 

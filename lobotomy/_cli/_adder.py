@@ -21,7 +21,7 @@ def _get_path(
 
 
 def run(context: "_definitions.CliContext") -> "_definitions.ExecutionResult":
-    """Adds a new call to the specified command actions."""
+    """Add a new call to the specified command actions."""
     file_format = context.args.file_format
     path = _get_path(context)
     prefix = [item for item in (context.args.prefix or "").split(".") if item]

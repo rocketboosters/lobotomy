@@ -6,6 +6,8 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Code style: flake8](https://img.shields.io/badge/code%20style-flake8-white)](https://gitlab.com/pycqa/flake8)
 [![Code style: mypy](https://img.shields.io/badge/code%20style-mypy-white)](http://mypy-lang.org/)
+[![Code style: pydocstyle](https://img.shields.io/badge/code%20style-pydocstyle-white)](http://www.pydocstyle.org/en/stable/)
+[![Code style: radon](https://img.shields.io/badge/code%20style-radon-white)](https://radon.readthedocs.io/en/latest/)
 [![PyPI - License](https://img.shields.io/pypi/l/lobotomy)](https://pypi.org/project/lobotomy/)
 
 - [Installation](#installation)
@@ -688,10 +690,11 @@ import lobotomy
 @lobotomy.patch()
 def test_client_errors(lobotomized: lobotomy.Lobotomy):
     """Should raise the specified error."""
-    lobotomized.add_call(
+    lobotomized.add_error_call(
         service_name="s3",
         method_name="list_objects",
-        response={"Error": {"Code": "NoSuchBucket", "Message": "Hello..."}},
+        error_code="NoSuchBucket", 
+        error_message="Hello...",
     )
 
     session = boto3.Session()
@@ -717,7 +720,8 @@ def test_client_errors(lobotomized: lobotomy.Lobotomy):
     lobotomized.add_call(
         service_name="s3",
         method_name="list_objects",
-        response={"Error": {"Code": "NoSuchBucket", "Message": "Hello..."}},
+        error_code="NoSuchBucket", 
+        error_message="Hello...",
     )
 
     session = boto3.Session()
@@ -728,6 +732,19 @@ def test_client_errors(lobotomized: lobotomy.Lobotomy):
 
     assert exception_info.value.response["Error"]["Code"] == "NoSuchBucket"
 ```
+
+These errors can also be specified in YAML files like this:
+
+```yaml
+clients:
+  s3:
+    list_objects: !lobotomy.error
+      code: NoSuchBucket
+      message: Hello...
+```
+
+The `!lobotomy.error` will load this as an error response with the same behavior as the
+examples shown above.
 
 ## Callable Responses
 

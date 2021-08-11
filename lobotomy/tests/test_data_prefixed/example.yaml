@@ -1,6 +1,0 @@
-lobotomy:
-  clients:
-    sts: {get_caller_identity: {UserId: 'SOMEUSERIDSTRING'}}
-  foo:
-    clients:
-      sts: {get_caller_identity: {UserId: 'OTHERIDSTRING'}}

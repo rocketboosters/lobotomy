@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "lobotomy"
-version = "0.3.6"
+version = "0.3.7"
 license = "MIT"
 description = "Boto3 low-level client mocking library."
 authors = ["Scott Ernst <swernst@gmail.com>"]
@@ -38,9 +38,12 @@ black = { version = "*", allow-prereleases = true }
 pytest-cov = "yes"
 flake8 = "yes"
 flake8-black = "yes"
-mypy = "yeas"
+mypy = "yes"
 taskipy = ">=1.4.0"
 aok = "yes"
+pydocstyle = "yes"
+radon = "yes"
+yamllint = "yes"
 
 [tool.poetry.scripts]
 lobotomy = 'lobotomy:run_cli'
@@ -48,11 +51,14 @@ lobotomy = 'lobotomy:run_cli'
 [tool.taskipy.tasks]
 # https://github.com/illBeRoy/taskipy
 black = "black ."
+pydocstyle = "pydocstyle ."
+yamllint = "yamllint ."
+radon = "radon cc . --min=C && radon mi . --min=B"
 mypy = "poetry run mypy . --install-types --non-interactive --ignore-missing-imports"
 flake8 = "flake8 ."
 test = "pytest . --cov-report=term-missing --cov=."
-lint = "task black && task flake8 && task mypy"
-check = "task black && task flake8 && task mypy && task test"
+lint = "task black && task flake8 && task mypy && task pydocstyle && task radon && task yamllint"
+check = "task lint && task test"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

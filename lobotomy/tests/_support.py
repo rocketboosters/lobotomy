@@ -6,7 +6,7 @@ def make_path(
     file_format: str = "json",
     exists: bool = True,
 ):
-    """Creates a mocked pathlib.Path object to return and use during testing."""
+    """Create a mocked pathlib.Path object to return and use during testing."""
     path = MagicMock()
     path.name = f"foo.{file_format}"
     path.exists.return_value = exists

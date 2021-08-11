@@ -1,0 +1,5 @@
+clients:
+  lambda:
+    get_function_configuration: !lobotomy.error
+      code: ResourceNotFoundException
+      message: Nope, that's not a function.

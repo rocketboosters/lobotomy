@@ -9,11 +9,11 @@ def add_service_response(
     response: typing.Any = None,
 ) -> None:
     """
-    Mutates the specified lobotomy data with a new service call invocation for
-    the specified method. If a single call already exists for the given method,
-    it will be converted into a side-effect list of responses. If multiple calls
-    already exist for the given method, the new call will be appended to the end
-    of the existing side-effect list.
+    Mutate the specified lobotomy data with a new service call invocation.
+
+    If a single call already exists for the given method, it will be converted into a
+    side-effect list of responses. If multiple calls already exist for the given method,
+    the new call will be appended to the end of the existing side-effect list.
 
     :param lobotomy_data:
         Existing lobotomy data to mutate with the new service call.

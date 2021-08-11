@@ -10,6 +10,8 @@ import lobotomy
 
 class InternalStreamer:
     """
+    Mock representation of the StreamingBody object.
+
     An internal class that replaces the HTTPResponse object that boto
     StreamingBody objects wrap. This is used to simulate the streaming
     body behaviors in returned streaming response objects.
@@ -24,7 +26,7 @@ class InternalStreamer:
         self._fp = MagicMock()
 
     def read(self, amt: int = None):
-        """Simulates the streaming interface."""
+        """Simulate the streaming interface."""
         length = len(self._source)
         amount = amt if amt is not None else length
         start = max(0, self._cursor)
@@ -33,17 +35,23 @@ class InternalStreamer:
         return self._source[start:end]
 
     def close(self):
-        # Exists only for compatibility cases.
+        """
+        Close the stream.
+
+        Exists only for compatibility cases as this isn't used here.
+        """
         pass
 
     def __len__(self):
+        """Get length of the internal streaming body."""
         return len(self._source)
 
 
 def _cast_structure(definition: dict, value: dict) -> dict:
     """
-    Converts a dictionary/structure botocore type into its formatted values
-    by recursively casting all the members.
+    Convert a dictionary/structure botocore type into its formatted values.
+
+    This recursively casts all the members of the dictionary/structure.
 
     :param definition:
         Specification definition for the associated value to cast.
@@ -58,8 +66,7 @@ def _cast_structure(definition: dict, value: dict) -> dict:
 
 def _cast_noop(definition: dict, value: typing.Any) -> typing.Any:
     """
-    A non-casting, no-op operation used for unknown or uncastable value
-    types.
+    Cast as a no-op operation used for unknown or uncastable value types.
 
     :param definition:
         Specification definition for the associated value to cast.
@@ -73,7 +80,7 @@ def _cast_noop(definition: dict, value: typing.Any) -> typing.Any:
 
 def _cast_integer(definition: dict, value: typing.Any) -> int:
     """
-    Converts a value into an integer value.
+    Convert a value into an integer value.
 
     :param definition:
         Specification definition for the associated value to cast.
@@ -88,8 +95,7 @@ def _cast_integer(definition: dict, value: typing.Any) -> int:
 
 def _cast_list(definition: dict, value: list) -> list:
     """
-    Converts a list botocore type into its formatted values
-    by recursively casting all the items.
+    Convert a list botocore type into formatted values recursively casting its items.
 
     :param definition:
         Specification definition for the associated value to cast.
@@ -107,8 +113,9 @@ def _cast_string(
     value: typing.Any,
 ) -> typing.Union[str, StreamingBody]:
     """
-    Converts a string botocore type into its formatted value. If the
-    definition indicates that the string is returned in streaming format,
+    Convert a string botocore type into its formatted value.
+
+    If the definition indicates that the string is returned in streaming format,
     a StreamingBody object is returned instead with the string value
     injected into the body via an InternalStreamer object that mimics the
     actual streaming behavior of a real StreamingBody response.
@@ -132,8 +139,9 @@ def _cast_blob(
     value: typing.Any,
 ) -> typing.Union[bytes, StreamingBody]:
     """
-    Converts a blob botocore type into its formatted value. If the
-    definition indicates that the blob is returned in streaming format,
+    Convert a blob botocore type into its formatted value.
+
+    If the definition indicates that the blob is returned in streaming format,
     a StreamingBody object is returned instead with the bytes value
     injected into the body via an InternalStreamer object that mimics the
     actual streaming behavior of a real StreamingBody response.
@@ -161,11 +169,12 @@ def _cast_timestamp(
     value: typing.Union[float, int, str, datetime.date, datetime.datetime],
 ) -> datetime.datetime:
     """
-    Converts a string date definition into a datetime as would be returned
-    by the boto response. The dateutil library is used to parse the string
-    for flexible representation. Additionally, an integer/float value can
-    be specified, which will be treated as a unix timestamp. Note that
-    boto returns timezone-aware datetime objects, so this loading process
+    Convert a string date definition into a boto-style datetime.
+
+    This matches the format as would be returned by a boto response. The dateutil
+    library is used to parse the string for flexible representation. Additionally, an
+    integer/float value can be specified, which will be treated as a unix timestamp.
+    Note that boto returns timezone-aware datetime objects, so this loading process
     ensures that the returned datetime is timezone-aware. If no timezone
     was determined by the loading process, UTC is used by default.
 
@@ -198,9 +207,10 @@ def _cast_timestamp(
 
 def cast(definition: typing.Optional[dict], value: typing.Any) -> typing.Any:
     """
-    Casts the raw mocked value into its equivalent boto response type as
-    defined by the definition object for the value. For complex types, this
-    function acts recursively.
+    Cast the raw mocked value into its equivalent boto response type.
+
+    Determines the casting from the data type as defined by the definition object for
+    the value. For complex types, this function acts recursively.
 
     :param definition:
         Specification definition for the associated value to cast.

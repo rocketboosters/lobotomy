@@ -1,9 +1,9 @@
-import typing
 import argparse
+import typing
 
 
 def parse(arguments: typing.List[str] = None) -> argparse.Namespace:
-    """Parses command line arguments for command execution."""
+    """Parse command line arguments for command execution."""
     parser = argparse.ArgumentParser(
         prog="lobotomy",
         description="""

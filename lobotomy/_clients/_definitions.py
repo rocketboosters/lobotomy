@@ -14,8 +14,9 @@ from lobotomy._clients import _validation
 
 class Client:
     """
-    Mocks AWS boto3.client behaviors that pull response data from data stored
-    in configuration files.
+    Mock AWS boto3.client behaviors.
+
+    This pulls response data from data stored in configuration files.
     """
 
     def __init__(
@@ -98,8 +99,9 @@ class Client:
 
     def __getattr__(self, item: str):
         """
-        Retrieves response data for the given client call from the
-        scenario data that defines the execution.
+        Retrieve response data for the given client call.
+
+        This comes from the scenario data that defines the execution.
         """
         if not self._service.has(item):
             raise lobotomy.NoSuchMethod(
@@ -168,7 +170,7 @@ class Client:
         return "".join(url_parts)
 
     def get_paginator(self, item: str) -> MagicMock:
-        """Mocks a single-page paginator response."""
+        """Mock a single-page paginator response."""
 
         def _call(*args, **kwargs):
             return [self._call(item, *args, **kwargs)]

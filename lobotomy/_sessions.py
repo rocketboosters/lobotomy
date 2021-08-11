@@ -53,45 +53,39 @@ class ReadOnlyCredentials(typing.NamedTuple):
 
 
 class Credentials:
-    """
-    Mock botocore Credentials object used by Session.get_credentials during
-    lobotomy tests.
-    """
+    """Mock botocore Credentials object used by Session.get_credentials."""
 
     def __init__(self, data: dict = None):
-        """Stores configuration data for access."""
+        """Store configuration data for access."""
         self._data = data or {}
 
     @property
     def method(self) -> str:
-        """Authentication method by which credentials were loaded."""
+        """Fetch authentication method by which credentials were loaded."""
         return self._data.get("method", "manual")
 
     @property
     def access_key(self) -> str:
-        """AWS access key for the associated session."""
+        """Fetch AWS access key for the associated session."""
         return self._data.get("access_key", "A123LOBOTOMY")
 
     @property
     def secret_key(self) -> str:
-        """AWS secret key for the associated session."""
+        """Fetch AWS secret key for the associated session."""
         return self._data.get("secret_key", "lobotomysecretkey")
 
     @property
     def token(self) -> typing.Optional[str]:
-        """Optional AWS access token for the associated session."""
+        """Fetch optional AWS access token for the associated session."""
         return self._data.get("token")
 
     def get_frozen_credentials(self) -> "ReadOnlyCredentials":
-        """A named-tuple form of the credentials for the associated session."""
+        """Fetch a named-tuple form of the credentials for the associated session."""
         return ReadOnlyCredentials(self.access_key, self.secret_key, self.token)
 
 
 class Session:
-    """
-    Mock boto3.Session object to use in place of the real one during lobotomy
-    tests.
-    """
+    """Mock boto3.Session object used in place of the real one during lobotomy tests."""
 
     def __init__(
         self,
@@ -103,6 +97,7 @@ class Session:
         profile_name: str = None,
         source_lobotomy: "Lobotomy" = None,
     ):
+        """Mock session object to replace the standard boto3.Session."""
         self.lobotomy: Lobotomy = source_lobotomy or Lobotomy()
         self.events = MagicMock()
 
@@ -123,27 +118,28 @@ class Session:
 
     @property
     def profile_name(self) -> typing.Optional[str]:
-        """Optional name of the AWS profile used for the session if set."""
+        """Fetch optional name of the AWS profile used for the session if set."""
         return self._data.get("profile_name")
 
     @property
     def region_name(self) -> typing.Optional[str]:
-        """Optional explicit AWS region used for the session if set."""
+        """Fetch optional explicit AWS region used for the session if set."""
         return self._data.get("region_name")
 
     @property
     def available_profiles(self) -> typing.List[str]:
-        """List of AWS profiles available for use in the session."""
+        """List AWS profiles available for use in the session."""
         return self._data.get("available_profiles") or []
 
     def get_credentials(self) -> "Credentials":
-        """Retrieves the credentials associated with the session."""
+        """Retrieve the credentials associated with the session."""
         return Credentials(self._data.get("credentials") or {})
 
     def client(self, service_name: str, *args, **kwargs) -> "lobotomy.Client":
         """
-        Creates a lobotomy client object for the specified service. Each
-        service-client is a singleton such that subsequent calls for the
+        Create a lobotomy client object for the specified service.
+
+        Each service-client is a singleton such that subsequent calls for the
         same service name will return the same object.
         """
         override = self.lobotomy.get_client_override(service_name)
@@ -162,8 +158,9 @@ class Session:
 
 class Lobotomy:
     """
-    Factory replacement class for boto3.Session that generates mock session
-    objects during lobotomy tests.
+    Factory replacement class for boto3.Session.
+
+    This class generates mock session objects during lobotomy tests.
     """
 
     def __init__(
@@ -171,13 +168,14 @@ class Lobotomy:
         data: typing.Dict[str, typing.Any] = None,
         client_overrides: typing.Dict[str, typing.Any] = None,
     ):
+        """Create the main lobotomy instance."""
         self.data = data or {}
         self._client_overrides = client_overrides or {}
         self._service_calls: typing.List[ServiceCall] = []
 
     @property
     def service_calls(self) -> typing.Tuple["ServiceCall", ...]:
-        """A list of the service calls that have been made so far."""
+        """Get a list of the service calls that have been made so far."""
         return tuple(self._service_calls)
 
     def get_service_call(
@@ -187,8 +185,10 @@ class Lobotomy:
         index: int = 0,
     ) -> "ServiceCall":
         """
-        Finds and returns the Nth service call made for the given method for inspection
-        and assertion during test evaluation as specified by the index.
+        Find the Nth service call made for the given method.
+
+        This is used for inspection and assertion during test evaluation as specified
+        by the index.
 
         :param service_name:
             Name of the AWS boto3 service in which the method call being added resides.
@@ -210,8 +210,9 @@ class Lobotomy:
         method_name: str,
     ) -> typing.List["ServiceCall"]:
         """
-        Finds and returns a list containing all service calls made for the given method
-        for inspection and assertion during test evaluation.
+        Find and returns a list containing all service calls made for the given method.
+
+        Use this for inspection and assertion during test evaluation.
 
         :param service_name:
             Name of the AWS boto3 service in which the method call being added resides.
@@ -227,8 +228,9 @@ class Lobotomy:
 
     def add_client_override(self, service_name: str, client: typing.Any) -> "Lobotomy":
         """
-        Add an override client that will be returned instead of a lobotomy client
-        within the scope of this Lobotomy's lifecycle.
+        Add an override client that will be returned instead of a lobotomy client.
+
+        This is maintained within the scope of this Lobotomy's lifecycle.
 
         :param service_name:
             Name of the AWS boto service of the client to be overridden.
@@ -241,8 +243,9 @@ class Lobotomy:
 
     def remove_client_override(self, service_name: str) -> "Lobotomy":
         """
-        Removes an overridden client if such an override exists. Will do nothing if
-        the override does not currently exist.
+        Remove an overridden client if such an override exists.
+
+        Will do nothing if the override does not currently exist.
 
         :param service_name:
             Name of the AWS boto service of the client to be removed as an override.
@@ -253,7 +256,7 @@ class Lobotomy:
 
     def get_client_override(self, service_name: str) -> typing.Any:
         """
-        Retrieves an override client if it exists.
+        Retrieve an override client if it exists.
 
         :param service_name:
             Name of the AWS boto service for which to fetch an override client.
@@ -267,9 +270,10 @@ class Lobotomy:
         response: typing.Any = None,
     ) -> "Lobotomy":
         """
-        Adds a method call response to the stored data. Operates in the same fashion
-        as the CLI, in that additional adds will convert a single call into a list of
-        calls.
+        Add a method call response to the stored data.
+
+        Operates in the same fashion as the CLI, in that additional adds will convert a
+        single call into a list of calls.
 
         :param service_name:
             Name of the AWS boto3 service in which the method call being added resides.
@@ -284,6 +288,34 @@ class Lobotomy:
         _mutator.add_service_response(self.data, method, response)
         return self
 
+    def add_error_call(
+        self,
+        service_name: str,
+        method_name: str,
+        error_code: str = "GenericLobotomyError",
+        error_message: str = "There was an error.",
+    ) -> "Lobotomy":
+        """
+        Add a method call response to the stored data that represents an error.
+
+        :param service_name:
+            Name of the AWS boto3 service in which the method call being added resides.
+        :param method_name:
+            Name of the AWS boto3 method to be called for this response within the
+            specified service.
+        :param error_code:
+            AWS service call error code. Using a "real" error code is recommended as it
+            will map correctly to the corresponding boto/botocore error object if it
+            exists.
+        :param error_message:
+            Message to include in the error object raised by this call.
+        """
+        return self.add_call(
+            service_name=service_name,
+            method_name=method_name,
+            response={"Error": {"Code": error_code, "Message": error_message}},
+        )
+
     def __call__(
         self,
         aws_access_key_id: str = None,
@@ -294,7 +326,8 @@ class Lobotomy:
         profile_name: str = None,
     ) -> "Session":
         """
-        Mimics the boto3.Session() constructor as a lobotomized session factory.
+        Mimic the boto3.Session() constructor as a lobotomized session factory.
+
         The arguments to this method match the arguments to the boto3.Session()
         constructor signature and are stored within the lobotomized session as
         part of the duck-typed interface.
@@ -310,7 +343,7 @@ class Lobotomy:
         )
 
     def get_session_data(self) -> dict:
-        """Retrieves the lobotomized configuration data assocated with the session."""
+        """Retrieve the lobotomized configuration data associated with the session."""
         data = self.data.get("session", self.data.get("sessions")) or {}
         if not isinstance(data, dict):
             return data.pop(0)
@@ -318,9 +351,9 @@ class Lobotomy:
 
     def record_call(self, service_call: "ServiceCall") -> None:
         """
-        Records a service call made from a client in the list of overall service
-        calls for the lobotomized environment. This is meant to be called by
-        lobotomy.Clients only.
+        Record a service call made from a client in the list of overall service calls.
+
+        This is meant to be called by lobotomy.Clients only.
 
         :param service_call:
             Service call to record within the lobotomy instance.
@@ -334,9 +367,9 @@ class Lobotomy:
         arguments: typing.Dict[str, typing.Any] = None,
     ) -> typing.Any:
         """
-        Retrieves the response data for the given service and method name
-        combination from the lobotomy data. If such a response does not
-        exist, an error is raised instead.
+        Retrieve the response data for the given service and method name.
+
+        If such a response does not exist, an error is raised instead.
 
         :param service_name:
             Name of the boto3 service in which the method call lookup is being made.

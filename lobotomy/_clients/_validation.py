@@ -10,9 +10,10 @@ def validate_input(
     request_kwargs: typing.Dict[str, typing.Any],
 ) -> typing.Dict[str, typing.Any]:
     """
-    Compares the request made to its botocore definition to raise assertion
-    errors if there are missing required arguments or if there are extraneous
-    unknown arguments for the top-level request calls.
+    Compare the request made to its botocore definition.
+
+    This raises assertion errors if there are missing required arguments or if there
+    are extraneous unknown arguments for the top-level request calls.
 
     Future work here would also look at required arguments hierarchically as
     well as use some of the patterns and mins/maxes specified by the botocore

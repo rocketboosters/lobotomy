@@ -7,6 +7,8 @@ import lobotomy as lbm
 
 class Patch:
     """
+    Patching decorator/ContextManager class for general lobotomy use.
+
     A patch decorator class that will behave like the unittest.mock.patch
     specifically for the boto3.Session object, replacing it in the test
     with the Lobotomy session factory that will be used to replace the normal
@@ -55,7 +57,8 @@ class Patch:
 
     def _make_lobotomy(self) -> "lbm.Lobotomy":
         """
-        Creates the lobotomy object to be used during the patch lifetime.
+        Create the lobotomy object to be used during the patch lifetime.
+
         This has to be created with each call to prevent multiple scenario
         executions for the same test function.
         """
@@ -75,18 +78,24 @@ class Patch:
 
     def __call__(self, caller: typing.Callable):
         """
-        Calls the patching decorator that wraps the test function with
-        a patch of the boto3.Session class.
+        Call the patching decorator that wraps the test function.
+
+        This calls with a patch of the boto3.Session class.
         """
         return mock_patch(self.patch_path, new_callable=self._make_lobotomy)(caller)
 
     def __enter__(self):
-        """..."""
+        """Start the lobotomy mocking for the patched scope."""
         p = mock_patch(self.patch_path, new_callable=self._make_lobotomy)
         self._context_patch = p
         return p.__enter__()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        """
+        End the patching process and restore the original state.
+
+        This prevents the patching process from remaining in place after patching.
+        """
         if self._context_patch is None:
             return True
         return self._context_patch.__exit__(exc_type, exc_val, exc_tb)

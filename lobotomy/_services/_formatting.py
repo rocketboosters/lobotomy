@@ -5,9 +5,9 @@ import typing
 
 def parse_definition_item(shapes: dict, value: dict, max_depth: int = 10) -> dict:
     """
-    Unwraps the value object by placing its shape data within a copy of
-    the object itself and returning that copied object. This works
-    recursively to unwrap results hierarchically.
+    Unwrap the value object by placing its shape data within a copy of the object.
+
+    Return that copied object. This works recursively to unwrap results hierarchically.
 
     :param shapes:
         Shape definitions from the service spec in which this value
@@ -16,6 +16,10 @@ def parse_definition_item(shapes: dict, value: dict, max_depth: int = 10) -> dic
         A definition object value to unwrap shape data within, or potentially
         a value object that has no shape and is already a leaf definition
         value as this function is called recursively.
+    :param max_depth:
+        Max recursion of the parsing before the process aborts. This prevents circular
+        reference issues in cases like dynamoDB table definitions where the definitions
+        map back and forth.
     :return:
         An unwrapped, deep-copied version of the value dictionary where
         the shape(s) have been injected into the object hierarchically to
@@ -57,8 +61,10 @@ def parse_definition_item(shapes: dict, value: dict, max_depth: int = 10) -> dic
 
 def flat_cast(output: dict) -> typing.Any:
     """
-    Creates a flat version of the output with default values for inclusion
-    as a skeleton in a configuration response file.
+    Create a flat version of the output.
+
+    Default will be included for inclusion as a skeleton in a configuration
+    response file.
     """
     o = output
     data_type = o.get("type", "structure")

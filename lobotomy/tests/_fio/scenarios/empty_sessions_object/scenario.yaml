@@ -1,7 +1,7 @@
 clients:
   secretsmanager:
     get_secret_value:
-      SecretString: "foo"
+      SecretString: foo
 
 sessions: {}
 
