@@ -9,9 +9,9 @@ def test_s3_select(lobotomized: lobotomy.Lobotomy):
         "select_object_content",
         {
             "Payload": [
-                {"Records": [{"Payload": "a"}]},
-                {"Records": [{"Payload": "b"}, {"Payload": "c"}]},
-                {"Records": [{"Payload": "d"}]},
+                {"Records": {"Payload": "a"}},
+                {"Records": {"Payload": "b"}},
+                {"Records": {"Payload": "c"}},
             ]
         },
     )
@@ -30,7 +30,7 @@ def test_s3_select(lobotomized: lobotomy.Lobotomy):
     )
     observed = list(response["Payload"])
     assert observed == [
-        {"Records": [{"Payload": "a"}]},
-        {"Records": [{"Payload": "b"}, {"Payload": "c"}]},
-        {"Records": [{"Payload": "d"}]},
+        {"Records": {"Payload": b"a"}},
+        {"Records": {"Payload": b"b"}},
+        {"Records": {"Payload": b"c"}},
     ]

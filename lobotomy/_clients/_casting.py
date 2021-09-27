@@ -90,7 +90,10 @@ def _cast_structure(
         the value as it would be returned in a boto client response.
     """
     if definition.get("eventstream"):
-        return InternalEventStreamer(value)
+        sub_definition = definition.copy()
+        sub_definition["eventstream"] = False
+        values = [value] if isinstance(value, dict) else value
+        return InternalEventStreamer([cast(sub_definition, v) for v in values])
 
     return {
         k: cast(definition["members"].get(k), v)
