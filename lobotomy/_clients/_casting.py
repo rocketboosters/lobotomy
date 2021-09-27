@@ -8,6 +8,31 @@ from botocore.response import StreamingBody
 import lobotomy
 
 
+class InternalEventStreamer:
+    """
+    Mock representation of an EventStream object.
+
+    This is used notably in the S3 Select return body. The source class for this
+    is located at `botocore.eventstream.EventStream`.
+    """
+
+    def __init__(
+        self,
+        source: typing.Union[
+            typing.Dict[str, typing.Any],
+            typing.List[typing.Dict[str, typing.Any]],
+            typing.Tuple[typing.Dict[str, typing.Any], ...],
+        ],
+    ):
+        """Wrap the response in a streaming interface."""
+        self._source = [source] if isinstance(source, dict) else source
+
+    def __iter__(self):
+        """Iterate over each element in the source."""
+        for event in self._source:
+            yield event
+
+
 class InternalStreamer:
     """
     Mock representation of the StreamingBody object.
@@ -47,7 +72,10 @@ class InternalStreamer:
         return len(self._source)
 
 
-def _cast_structure(definition: dict, value: dict) -> dict:
+def _cast_structure(
+    definition: dict,
+    value: typing.Union[dict, list],
+) -> typing.Union[dict, InternalEventStreamer]:
     """
     Convert a dictionary/structure botocore type into its formatted values.
 
@@ -61,7 +89,13 @@ def _cast_structure(definition: dict, value: dict) -> dict:
         The cast version of the specified value that matches the format of
         the value as it would be returned in a boto client response.
     """
-    return {k: cast(definition["members"].get(k), v) for k, v in value.items()}
+    if definition.get("eventstream"):
+        return InternalEventStreamer(value)
+
+    return {
+        k: cast(definition["members"].get(k), v)
+        for k, v in typing.cast(dict, value).items()
+    }
 
 
 def _cast_noop(definition: dict, value: typing.Any) -> typing.Any:
