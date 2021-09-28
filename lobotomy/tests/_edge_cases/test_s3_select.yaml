@@ -1,0 +1,8 @@
+clients:
+  s3:
+    select_object_content:
+      Payload:
+      - Records:
+          Payload: '{"foo": "bar", "spam": 1000}'
+      - Records:
+          Payload: '{"foo": "baz", "spam": 2000}'
