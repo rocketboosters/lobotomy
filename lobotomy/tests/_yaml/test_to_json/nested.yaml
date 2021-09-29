@@ -1,0 +1,9 @@
+clients:
+  secretsmanager:
+    get_secret_value:
+      SecretString: !lobotomy.to_json
+        foo: bar
+        spam: 42
+        ham: !lobotomy.to_json
+        - hello
+        - world

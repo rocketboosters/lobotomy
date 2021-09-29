@@ -4,6 +4,7 @@ import pathlib
 import typing
 
 import yaml
+import yaml.constructor
 
 
 @dataclasses.dataclass()
@@ -49,13 +50,22 @@ class YamlModifier:
         yaml.add_representer(cls, cls.dump_yaml)
 
 
+class ToJsonEncoder(json.JSONEncoder):
+    """Custom encoder that handles nested ToJson structures."""
+
+    def default(self, value: typing.Any) -> typing.Any:
+        """Handle unknown values to the standard JSON encoder."""
+        if isinstance(value, ToJson):
+            return value.to_response_data()
+
+
 @dataclasses.dataclass()
 class ToJson(YamlModifier):
     """YAML class for converting a YAML object into a JSON string in a response."""
 
     def to_response_data(self) -> typing.Any:
         """Convert the modifier to its response format."""
-        return json.dumps(self.value)
+        return json.dumps(self.value, cls=ToJsonEncoder)
 
     @classmethod
     def label(cls) -> str:
@@ -65,12 +75,17 @@ class ToJson(YamlModifier):
     @classmethod
     def _from_yaml(cls, loader: yaml.Loader, node: yaml.Node) -> "ToJson":
         """Load an internal yaml node parsing."""
-        value = loader.construct_mapping(node, deep=True)
+        try:
+            value = loader.construct_mapping(node, deep=True)
+        except yaml.constructor.ConstructorError:
+            value = loader.construct_sequence(node, deep=True)
         return cls(value)
 
     @classmethod
     def _dump_yaml(cls, dumper: yaml.Dumper, source: "YamlModifier") -> typing.Any:
         """Convert to a yaml node representation for writing to file."""
+        if isinstance(source.value, (list, tuple)):
+            return dumper.represent_sequence(source.label(), source.value)
         return dumper.represent_mapping(source.label(), source.value)
 
 

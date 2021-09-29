@@ -1,0 +1,6 @@
+clients:
+  secretsmanager:
+    get_secret_value:
+      SecretString: !lobotomy.to_json
+      - bar
+      - 42
